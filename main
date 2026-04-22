@@ -1,0 +1,2792 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FISCH — Deep Waters</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap');
+:root{
+  --deep:#020b18;--mid:#041429;--surf:#062040;
+  --teal:#0aabbd;--tg:#0dd9f0;--gold:#f0c060;--gdim:#a07830;
+  --grn:#22cc77;--red:#ff4455;
+  --common:#a0b0c0;--uncommon:#44cc88;--rare:#4488ff;
+  --legendary:#cc44ff;--mythic:#ff8844;
+  --exotic:#ff44aa;--secret:#ffe066;--divine:#ffffff;
+  --ascend:#ff00ff;
+  --aurora:#88ffcc;--tm:#d0e8f0;--td:#607080;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--deep);color:var(--tm);font-family:'Crimson Pro',serif;min-height:100vh;overflow-x:hidden;}
+
+/* ── AREA BACKGROUNDS ── */
+#ocean-bg{position:fixed;inset:0;z-index:0;pointer-events:none;transition:background 1.5s,filter 1.5s;overflow:hidden;}
+#ocean-bg.area-starter {background:linear-gradient(180deg,#010a16 0%,#020f22 45%,#041a35 100%);}
+#ocean-bg.area-coral   {background:linear-gradient(180deg,#030d1f 0%,#0a1e30 30%,#0a2a1a 70%,#041408 100%);}
+#ocean-bg.area-deep    {background:linear-gradient(180deg,#01050e 0%,#020818 50%,#000005 100%);}
+#ocean-bg.area-volcano {background:linear-gradient(180deg,#160500 0%,#2a0a00 40%,#1a0300 100%);}
+#ocean-bg.area-arctic  {background:linear-gradient(180deg,#0a1a2a 0%,#0c2233 40%,#071525 100%);}
+#ocean-bg.area-abyss   {background:linear-gradient(180deg,#050005 0%,#0d000f 50%,#000000 100%);}
+#ocean-bg.area-celest  {background:linear-gradient(180deg,#000510 0%,#000a20 40%,#080030 100%);}
+#ocean-bg.area-ruins   {background:linear-gradient(180deg,#0a0800 0%,#120f00 40%,#060400 100%);}
+#ocean-bg.area-divine  {background:linear-gradient(180deg,#0f0f0f 0%,#181818 40%,#0a0a0a 100%);}
+
+/* ── WATER SCENE BACKGROUNDS ── */
+#water-scene.area-starter {background:linear-gradient(180deg,#062040 0%,#041429 55%,#010812 100%);}
+#water-scene.area-coral   {background:linear-gradient(180deg,#0a2820 0%,#071a15 55%,#020a06 100%);}
+#water-scene.area-deep    {background:linear-gradient(180deg,#020818 0%,#010410 55%,#000003 100%);}
+#water-scene.area-volcano {background:linear-gradient(180deg,#301000 0%,#200800 55%,#0a0200 100%);}
+#water-scene.area-arctic  {background:linear-gradient(180deg,#0a1e30 0%,#071525 55%,#020a14 100%);}
+#water-scene.area-abyss   {background:linear-gradient(180deg,#0d000f 0%,#080008 55%,#000000 100%);}
+#water-scene.area-celest  {background:linear-gradient(180deg,#000a25 0%,#000518 55%,#000008 100%);}
+#water-scene.area-ruins   {background:linear-gradient(180deg,#120c00 0%,#0a0800 55%,#030200 100%);}
+#water-scene.area-divine  {background:linear-gradient(180deg,#151515 0%,#0d0d0d 55%,#050505 100%);}
+
+/* ── WATER SURFACE COLORS ── */
+#water-surface.area-starter{border-bottom:2px solid rgba(10,171,189,.3);background:linear-gradient(180deg,rgba(10,171,189,.15),transparent);}
+#water-surface.area-coral  {border-bottom:2px solid rgba(34,200,120,.3);background:linear-gradient(180deg,rgba(34,200,120,.15),transparent);}
+#water-surface.area-deep   {border-bottom:2px solid rgba(30,30,80,.5);background:linear-gradient(180deg,rgba(20,20,60,.2),transparent);}
+#water-surface.area-volcano{border-bottom:2px solid rgba(220,80,10,.4);background:linear-gradient(180deg,rgba(200,60,0,.2),transparent);}
+#water-surface.area-arctic {border-bottom:2px solid rgba(150,220,255,.35);background:linear-gradient(180deg,rgba(150,220,255,.12),transparent);}
+#water-surface.area-abyss  {border-bottom:2px solid rgba(120,0,150,.3);background:linear-gradient(180deg,rgba(80,0,100,.15),transparent);}
+#water-surface.area-celest {border-bottom:2px solid rgba(100,100,255,.35);background:linear-gradient(180deg,rgba(80,80,200,.15),transparent);}
+#water-surface.area-ruins  {border-bottom:2px solid rgba(140,120,50,.3);background:linear-gradient(180deg,rgba(120,100,30,.12),transparent);}
+#water-surface.area-divine {border-bottom:2px solid rgba(220,220,220,.3);background:linear-gradient(180deg,rgba(200,200,200,.08),transparent);}
+
+.bubble{position:absolute;border-radius:50%;animation:rise linear infinite;}
+@keyframes rise{from{transform:translateY(100vh) scale(.5);opacity:.6}to{transform:translateY(-20vh) scale(1.2);opacity:0}}
+.wave-layer{position:absolute;bottom:0;width:200%;height:70px;animation:wave 8s linear infinite;}
+@keyframes wave{from{transform:translateX(-50%)}to{transform:translateX(0%)}}
+
+/* ── WEATHER OVERLAYS ── */
+#weather-overlay{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:0;transition:opacity 1s;}
+#weather-overlay.rain{opacity:1;}
+#weather-overlay.storm{opacity:1;}
+#weather-overlay.thunder{opacity:1;}
+#weather-overlay.fog{opacity:1;}
+#weather-overlay.blizzard{opacity:1;}
+#weather-overlay.bloodmoon{opacity:1;}
+#weather-overlay.aurora{opacity:1;}
+.rain-drop{position:absolute;width:1px;background:linear-gradient(rgba(150,200,255,.6),transparent);animation:rainFall linear infinite;}
+@keyframes rainFall{from{transform:translateY(-20px)}to{transform:translateY(110vh)}}
+.lightning{position:absolute;width:2px;background:linear-gradient(#fff,rgba(180,180,255,.5),transparent);animation:lightning .1s ease-out forwards;}
+@keyframes lightning{0%{opacity:1}100%{opacity:0;transform:scaleY(1.1)}}
+.snow-flake{position:absolute;border-radius:50%;background:rgba(220,240,255,.7);animation:snowFall linear infinite;}
+@keyframes snowFall{0%{transform:translateY(-10px) translateX(0)}100%{transform:translateY(105vh) translateX(40px)}}
+.fog-layer{position:absolute;inset:0;background:rgba(180,190,200,.06);animation:fogDrift 12s ease-in-out infinite alternate;}
+@keyframes fogDrift{from{opacity:.4}to{opacity:.8}}
+#event-banner{padding:5px 20px;text-align:center;font-family:'Cinzel',serif;font-size:10px;letter-spacing:3px;display:none;transition:all .3s;}
+#event-banner.show{display:block;}
+#event-banner.aurora   {background:linear-gradient(90deg,transparent,rgba(136,255,204,.15),transparent);border-bottom:1px solid rgba(136,255,204,.4);color:#88ffcc;}
+#event-banner.bloodmoon{background:linear-gradient(90deg,transparent,rgba(200,20,20,.2),transparent);border-bottom:1px solid rgba(255,50,50,.4);color:#ff6677;}
+#event-banner.rain     {background:linear-gradient(90deg,transparent,rgba(100,160,255,.15),transparent);border-bottom:1px solid rgba(100,160,255,.4);color:#88aaff;}
+#event-banner.storm    {background:linear-gradient(90deg,transparent,rgba(80,60,180,.2),transparent);border-bottom:1px solid rgba(100,80,220,.4);color:#aaaaff;}
+#event-banner.thunder  {background:linear-gradient(90deg,transparent,rgba(255,220,50,.2),transparent);border-bottom:1px solid rgba(255,220,50,.4);color:#ffee66;}
+#event-banner.fog      {background:linear-gradient(90deg,transparent,rgba(180,190,200,.15),transparent);border-bottom:1px solid rgba(180,190,200,.3);color:#aabbcc;}
+#event-banner.blizzard {background:linear-gradient(90deg,transparent,rgba(200,230,255,.15),transparent);border-bottom:1px solid rgba(200,230,255,.4);color:#ccddff;}
+#event-banner.meteor   {background:linear-gradient(90deg,transparent,rgba(255,140,50,.2),transparent);border-bottom:1px solid rgba(255,140,50,.4);color:#ffaa66;}
+
+#app{position:relative;z-index:2;display:flex;flex-direction:column;min-height:100vh;}
+header{padding:10px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(10,171,189,.2);background:rgba(2,11,24,.88);backdrop-filter:blur(12px);flex-wrap:wrap;gap:6px;}
+.logo{font-family:'Cinzel',serif;font-size:22px;font-weight:900;letter-spacing:5px;color:var(--tg);text-shadow:0 0 25px rgba(10,171,189,.8);}
+.logo span{color:var(--gold);}
+.hud{display:flex;gap:12px;align-items:center;flex-wrap:wrap;}
+.hud-item{display:flex;flex-direction:column;align-items:flex-end;font-size:9px;letter-spacing:2px;color:var(--td);text-transform:uppercase;}
+.hud-val{font-family:'Cinzel',serif;font-size:13px;color:var(--gold);}
+.hud-val.teal{color:var(--tg);}
+#main{display:grid;grid-template-columns:180px 1fr 225px;flex:1;max-height:calc(100vh - 52px);}
+.panel{border-right:1px solid rgba(10,171,189,.1);padding:10px;overflow-y:auto;background:rgba(2,11,24,.55);}
+.panel:last-child{border-right:none;border-left:1px solid rgba(10,171,189,.1);}
+.ptitle{font-family:'Cinzel',serif;font-size:9px;letter-spacing:4px;color:var(--teal);text-transform:uppercase;padding-bottom:6px;margin-bottom:8px;border-bottom:1px solid rgba(10,171,189,.2);}
+.area-card{padding:7px 9px;margin-bottom:5px;border:1px solid rgba(255,255,255,.07);border-radius:3px;cursor:pointer;transition:all .2s;background:rgba(255,255,255,.02);}
+.area-card:hover{border-color:var(--teal);background:rgba(10,171,189,.07);}
+.area-card.active{border-color:var(--tg);background:rgba(10,171,189,.14);}
+.area-name{font-family:'Cinzel',serif;font-size:11px;}
+.area-sub{font-size:9px;color:var(--td);margin-top:2px;}
+.area-locked{opacity:.32;cursor:not-allowed;}
+#game-area{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px;gap:10px;}
+.biome-display{text-align:center;font-family:'Cinzel',serif;}
+.biome-name{font-size:18px;color:var(--tg);letter-spacing:4px;}
+.biome-desc{font-size:10px;color:var(--td);margin-top:3px;font-style:italic;}
+#water-scene{width:100%;max-width:420px;height:185px;position:relative;overflow:hidden;border-radius:6px;border:1px solid rgba(10,171,189,.18);cursor:pointer;transition:border-color 1.5s;}
+.water-surface-el{position:absolute;top:0;left:0;right:0;height:32px;transition:background .8s,border-color .8s;}
+#fishing-line{position:absolute;left:50%;top:0;width:1px;background:rgba(200,220,240,.5);display:none;}
+#bobber{position:absolute;width:10px;height:10px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#ff6644,#cc2200);box-shadow:0 0 7px rgba(255,100,68,.6);display:none;transform:translate(-50%,-50%);}
+#bobber.biting{animation:bite .25s ease-in-out infinite alternate;}
+@keyframes bite{from{transform:translate(-50%,-50%)}to{transform:translate(-50%,calc(-50% + 7px))}}
+.fish-sil{position:absolute;font-size:18px;opacity:.1;animation:swim linear infinite;}
+@keyframes swim{from{transform:translateX(-60px) scaleX(1)}50%{transform:translateX(calc(100% + 60px)) scaleX(1)}50.01%{transform:translateX(calc(100% + 60px)) scaleX(-1)}to{transform:translateX(-60px) scaleX(-1)}}
+.cast-hint{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Cinzel',serif;font-size:11px;letter-spacing:3px;color:rgba(10,171,189,.45);pointer-events:none;}
+.status-msg{font-size:10px;color:var(--td);letter-spacing:1px;text-align:center;font-style:italic;min-height:15px;}
+#cast-btn{font-family:'Cinzel',serif;font-size:11px;letter-spacing:4px;padding:10px 28px;background:transparent;border:2px solid var(--teal);color:var(--tg);cursor:pointer;text-transform:uppercase;position:relative;overflow:hidden;transition:all .3s;}
+#cast-btn::before{content:'';position:absolute;inset:0;background:var(--teal);transform:translateX(-100%);transition:.3s;z-index:-1;}
+#cast-btn:hover{color:var(--deep);}#cast-btn:hover::before{transform:translateX(0);}
+#cast-btn:disabled{opacity:.35;cursor:not-allowed;}
+.action-btns{display:flex;gap:5px;width:100%;max-width:420px;flex-wrap:wrap;}
+.abtn{flex:1;font-family:'Cinzel',serif;font-size:8px;letter-spacing:2px;padding:6px 3px;background:transparent;border:1px solid rgba(10,171,189,.28);color:var(--teal);cursor:pointer;transition:all .2s;text-transform:uppercase;min-width:55px;position:relative;}
+.abtn:hover{background:rgba(10,171,189,.09);}
+.abtn.gold{border-color:rgba(240,192,96,.28);color:var(--gold);}
+.abtn.gold:hover{background:rgba(240,192,96,.09);}
+.abtn.purple{border-color:rgba(204,68,255,.28);color:var(--legendary);}
+.abtn.purple:hover{background:rgba(204,68,255,.07);}
+.abtn.green{border-color:rgba(34,204,119,.28);color:var(--grn);}
+.abtn.green:hover{background:rgba(34,204,119,.07);}
+.abtn.auto-on{background:rgba(34,204,119,.2);border-color:var(--grn);color:var(--grn);}
+.badge{display:inline-block;background:var(--red);color:#fff;font-size:8px;border-radius:50%;width:12px;height:12px;text-align:center;line-height:12px;margin-left:3px;vertical-align:middle;}
+/* INVENTORY */
+.inv-fish{display:flex;align-items:center;gap:6px;padding:5px 7px;margin-bottom:4px;border:1px solid rgba(255,255,255,.06);border-radius:3px;cursor:pointer;transition:all .2s;position:relative;}
+.inv-fish:hover{border-color:var(--gold);background:rgba(240,192,96,.05);}
+.if-icon{font-size:15px;}.if-info{flex:1;}
+.if-name{font-size:10px;font-family:'Cinzel',serif;}.if-sub{font-size:8px;color:var(--td);}
+.if-val{font-size:9px;color:var(--gold);font-family:'Cinzel',serif;}
+.sdot{width:4px;height:4px;border-radius:50%;background:var(--grn);position:absolute;right:5px;top:5px;}
+#sell-all{width:100%;margin-top:6px;font-family:'Cinzel',serif;font-size:9px;letter-spacing:3px;padding:7px;background:transparent;border:1px solid var(--gold);color:var(--gold);cursor:pointer;}
+#sell-all:hover{background:rgba(240,192,96,.13);}
+.srow{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:10px;}
+.sl{color:var(--td);}.sv{color:var(--tm);font-family:'Cinzel',serif;font-size:10px;}
+.sbar-w{width:50px;height:3px;background:rgba(255,255,255,.1);border-radius:2px;overflow:hidden;}
+.sbar{height:100%;background:var(--teal);border-radius:2px;}
+/* ROD SKILL TAG */
+.rod-skill-tag{display:inline-block;font-size:8px;padding:2px 6px;border-radius:2px;margin-top:3px;font-family:'Cinzel',serif;letter-spacing:1px;}
+/* MINIGAME */
+#mg-overlay{display:none;position:fixed;inset:0;z-index:100;background:rgba(1,8,18,.91);backdrop-filter:blur(6px);align-items:center;justify-content:center;flex-direction:column;gap:14px;}
+#mg-overlay.active{display:flex;}
+.mg-title{font-family:'Cinzel',serif;font-size:16px;letter-spacing:6px;color:var(--tg);}
+.mg-fish{font-size:40px;animation:tug .45s ease-in-out infinite alternate;}
+@keyframes tug{from{transform:rotate(-7deg) scale(1)}to{transform:rotate(7deg) scale(1.1)}}
+#cp-wrap{width:320px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:3px;height:15px;overflow:hidden;}
+#cp-bar{height:100%;width:0%;background:linear-gradient(90deg,var(--teal),var(--tg));box-shadow:0 0 8px var(--teal);}
+#tz-wrap{width:320px;height:46px;border:1px solid rgba(255,255,255,.1);border-radius:3px;position:relative;background:rgba(255,0,30,.07);overflow:hidden;cursor:pointer;user-select:none;}
+#tz-zone{position:absolute;height:100%;background:rgba(34,204,119,.22);border-left:2px solid var(--grn);border-right:2px solid var(--grn);}
+#tz-ind{position:absolute;top:50%;width:12px;height:36px;background:var(--gold);border-radius:3px;transform:translate(-50%,-50%);box-shadow:0 0 8px var(--gold);}
+.mg-hint{font-size:10px;color:var(--td);letter-spacing:2px;}
+/* CATCH REVEAL */
+#reveal{display:none;position:fixed;inset:0;z-index:200;background:rgba(1,8,18,.97);align-items:center;justify-content:center;flex-direction:column;gap:12px;}
+#reveal.active{display:flex;}
+.rv-icon{font-size:68px;animation:pop .5s cubic-bezier(.34,1.56,.64,1);}
+@keyframes pop{from{transform:scale(0) rotate(-20deg)}to{transform:scale(1) rotate(0)}}
+.rv-name{font-family:'Cinzel',serif;font-size:22px;font-weight:900;letter-spacing:4px;text-align:center;}
+.rv-rarity{font-size:11px;letter-spacing:4px;text-transform:uppercase;padding:3px 12px;border-radius:2px;}
+.r-common{color:var(--common);border:1px solid var(--common);background:rgba(160,176,192,.1);}
+.r-uncommon{color:var(--uncommon);border:1px solid var(--uncommon);background:rgba(68,204,136,.1);}
+.r-rare{color:var(--rare);border:1px solid var(--rare);background:rgba(68,136,255,.1);}
+.r-legendary{color:var(--legendary);border:1px solid var(--legendary);background:rgba(204,68,255,.1);}
+.r-mythic{color:var(--mythic);border:1px solid var(--mythic);background:rgba(255,136,68,.1);}
+.r-exotic{color:var(--exotic);border:1px solid var(--exotic);background:rgba(255,68,170,.1);}
+.r-secret{color:var(--secret);border:1px solid var(--secret);background:rgba(255,224,102,.1);}
+.r-divine{color:var(--divine);border:1px solid var(--divine);background:rgba(255,255,255,.07);text-shadow:0 0 8px #fff;}
+.rv-mut{font-size:10px;letter-spacing:3px;text-transform:uppercase;}
+.rv-stats{display:flex;gap:18px;font-size:11px;color:var(--td);}
+.rv-sv{color:var(--tm);font-family:'Cinzel',serif;}
+.rv-val{font-family:'Cinzel',serif;font-size:18px;color:var(--gold);}
+#rv-btn{font-family:'Cinzel',serif;font-size:11px;letter-spacing:4px;padding:10px 28px;background:var(--gold);border:none;color:var(--deep);cursor:pointer;margin-top:4px;}
+#rv-btn:hover{background:var(--tg);}
+/* FAIL */
+#fail{display:none;position:fixed;inset:0;z-index:200;background:rgba(25,0,5,.93);align-items:center;justify-content:center;flex-direction:column;gap:12px;}
+#fail.active{display:flex;}
+#fail-retry{font-family:'Cinzel',serif;font-size:10px;letter-spacing:3px;padding:8px 24px;background:transparent;border:1px solid var(--red);color:var(--red);cursor:pointer;}
+/* OVERLAYS */
+.OV{display:none;position:fixed;inset:0;z-index:150;background:rgba(1,8,18,.97);backdrop-filter:blur(8px);align-items:center;justify-content:center;flex-direction:column;gap:11px;padding:14px;overflow-y:auto;}
+.OV.active{display:flex;}
+.ov-title{font-family:'Cinzel',serif;font-size:19px;letter-spacing:6px;}
+.ov-close{font-family:'Cinzel',serif;font-size:9px;letter-spacing:3px;padding:7px 22px;background:transparent;border:1px solid rgba(255,255,255,.18);color:var(--td);cursor:pointer;flex-shrink:0;}
+.ov-close:hover{color:var(--tm);border-color:var(--tm);}
+.tab-row{display:flex;gap:5px;flex-wrap:wrap;}
+.tbtn{font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;padding:6px 12px;background:transparent;border:1px solid rgba(255,255,255,.13);color:var(--td);cursor:pointer;transition:all .2s;}
+.tbtn.active{border-color:var(--teal);color:var(--tg);background:rgba(10,171,189,.09);}
+.sgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;max-width:780px;width:100%;max-height:52vh;overflow-y:auto;}
+.si{padding:10px;border:1px solid rgba(255,255,255,.07);border-radius:3px;background:rgba(255,255,255,.02);text-align:center;cursor:pointer;transition:all .2s;}
+.si:hover{border-color:var(--teal);background:rgba(10,171,189,.07);}
+.si.owned{border-color:var(--gdim);}.si.equipped{border-color:var(--tg);background:rgba(10,171,189,.09);}
+.si.daily-sp{border-color:var(--gold);background:rgba(240,192,96,.04);}
+.si-icon{font-size:24px;margin-bottom:5px;}.si-name{font-family:'Cinzel',serif;font-size:10px;margin-bottom:2px;}
+.si-desc{font-size:9px;color:var(--td);margin-bottom:5px;}.si-price{font-family:'Cinzel',serif;font-size:11px;color:var(--gold);}
+.si-price.cant{color:var(--red);}
+.si-skill{font-size:8px;padding:2px 6px;border-radius:2px;margin-top:3px;display:inline-block;font-family:'Cinzel',serif;}
+/* QUEST */
+.qlist{width:100%;max-width:560px;display:flex;flex-direction:column;gap:7px;max-height:58vh;overflow-y:auto;}
+.qcard{padding:11px;border:1px solid rgba(255,255,255,.07);border-radius:3px;background:rgba(255,255,255,.02);}
+.qcard.done{border-color:var(--gold);background:rgba(240,192,96,.05);}
+.qcard.claimed{opacity:.42;}
+.qcard.weekly{border-left:3px solid var(--exotic);}
+.qname{font-family:'Cinzel',serif;font-size:11px;margin-bottom:3px;}
+.qdesc{font-size:10px;color:var(--td);margin-bottom:6px;}
+.qpw{height:3px;background:rgba(255,255,255,.07);border-radius:2px;overflow:hidden;margin-bottom:6px;}
+.qpb{height:100%;background:var(--teal);border-radius:2px;transition:width .3s;}
+.qcard.weekly .qpb{background:var(--exotic);}
+.qfooter{display:flex;justify-content:space-between;align-items:center;}
+.qreward{font-size:10px;color:var(--gold);font-family:'Cinzel',serif;}
+.qreward.item-r{color:var(--tg);}
+.qclaim{font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;padding:4px 11px;background:var(--gold);border:none;color:var(--deep);cursor:pointer;border-radius:2px;}
+.qclaim:disabled{background:rgba(255,255,255,.09);color:var(--td);cursor:default;}
+/* COLLECTION */
+.cgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;max-width:700px;width:100%;max-height:58vh;overflow-y:auto;}
+.ccard{padding:7px 3px;border-radius:3px;text-align:center;border:1px solid rgba(255,255,255,.05);background:rgba(255,255,255,.02);}
+.ccard.caught{border-color:rgba(204,68,255,.28);background:rgba(204,68,255,.04);}
+.ccard.exotic{border-color:rgba(255,68,170,.28)!important;}.ccard.secret{border-color:rgba(255,224,102,.35)!important;}
+.ccard.divine{border-color:rgba(255,255,255,.45)!important;}.ccard.ascend-c{border-color:rgba(255,0,255,.4)!important;}
+.cicon{font-size:18px;opacity:.15;}.ccard.caught .cicon{opacity:1;}
+.cname{font-size:7px;color:var(--td);margin-top:2px;}.ccard.caught .cname{color:var(--tm);}
+/* ITEMS */
+.igrid{display:flex;flex-wrap:wrap;gap:7px;max-width:460px;}
+.icard{padding:10px;border:1px solid rgba(255,255,255,.09);border-radius:3px;background:rgba(255,255,255,.02);text-align:center;min-width:85px;}
+.icard.aurora-i{border-color:rgba(136,255,204,.28);}.icard.blood-i{border-color:rgba(255,68,68,.28);}
+.icard.rain-i{border-color:rgba(100,160,255,.28);}.icard.storm-i{border-color:rgba(100,80,220,.28);}
+.iicon{font-size:24px;margin-bottom:4px;}.iname{font-family:'Cinzel',serif;font-size:9px;margin-bottom:2px;}
+.iqty{font-size:10px;color:var(--gold);}
+.iuse{font-family:'Cinzel',serif;font-size:8px;letter-spacing:1px;padding:4px 9px;background:transparent;border:1px solid rgba(10,171,189,.38);color:var(--teal);cursor:pointer;margin-top:4px;display:block;width:100%;}
+.iuse:hover{background:rgba(10,171,189,.09);}
+/* AUTO FISH */
+.auto-info{font-size:10px;color:var(--td);text-align:center;font-style:italic;}
+/* TOAST */
+#toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);padding:7px 18px;background:rgba(2,11,24,.96);border:1px solid var(--teal);border-radius:3px;font-family:'Cinzel',serif;font-size:10px;letter-spacing:2px;color:var(--tg);z-index:300;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis;}
+#toast.show{opacity:1;}
+/* LOGIN */
+#login-screen{position:fixed;inset:0;z-index:1000;background:var(--deep);display:flex;align-items:center;justify-content:center;flex-direction:column;}
+#login-screen.hidden{display:none;}
+.lbg{position:absolute;inset:0;background:linear-gradient(180deg,#010a16 0%,#020f22 50%,#041a35 100%);overflow:hidden;}
+.lbubble{position:absolute;border-radius:50%;background:radial-gradient(circle at 30% 30%,rgba(10,171,189,.25),transparent);border:1px solid rgba(10,171,189,.12);animation:rise linear infinite;}
+.lbox{position:relative;z-index:2;width:340px;background:rgba(4,20,41,.88);border:1px solid rgba(10,171,189,.22);border-radius:6px;padding:36px 32px;backdrop-filter:blur(16px);display:flex;flex-direction:column;gap:18px;}
+.llogo{font-family:'Cinzel',serif;font-size:32px;font-weight:900;letter-spacing:8px;color:var(--tg);text-shadow:0 0 40px rgba(10,171,189,.8);text-align:center;}
+.llogo span{color:var(--gold);}
+.ltag{font-size:10px;color:var(--td);text-align:center;letter-spacing:3px;font-style:italic;margin-top:-12px;}
+.ltabs{display:flex;border:1px solid rgba(10,171,189,.2);border-radius:3px;overflow:hidden;}
+.ltab{flex:1;font-family:'Cinzel',serif;font-size:10px;letter-spacing:3px;padding:8px;background:transparent;border:none;color:var(--td);cursor:pointer;transition:all .2s;text-transform:uppercase;}
+.ltab.active{background:rgba(10,171,189,.14);color:var(--tg);}
+.lfield{display:flex;flex-direction:column;gap:5px;}
+.llabel{font-family:'Cinzel',serif;font-size:8px;letter-spacing:3px;color:var(--td);text-transform:uppercase;}
+.linput{background:rgba(255,255,255,.04);border:1px solid rgba(10,171,189,.18);border-radius:3px;padding:9px 11px;color:var(--tm);font-family:'Crimson Pro',serif;font-size:13px;outline:none;transition:border-color .2s;width:100%;}
+.linput:focus{border-color:var(--tg);}
+.linput::placeholder{color:var(--td);}
+.lbtn{font-family:'Cinzel',serif;font-size:11px;letter-spacing:4px;padding:12px;background:transparent;border:2px solid var(--teal);color:var(--tg);cursor:pointer;text-transform:uppercase;position:relative;overflow:hidden;transition:all .3s;}
+.lbtn::before{content:'';position:absolute;inset:0;background:var(--teal);transform:translateX(-100%);transition:.3s;z-index:-1;}
+.lbtn:hover{color:var(--deep);}.lbtn:hover::before{transform:translateX(0);}
+.lerr{font-size:10px;color:var(--red);text-align:center;min-height:14px;font-style:italic;}
+.lacct{font-size:9px;color:var(--td);text-align:center;}
+#logout-btn{font-family:'Cinzel',serif;font-size:8px;letter-spacing:2px;padding:5px 10px;background:transparent;border:1px solid rgba(255,68,85,.28);color:#ff8899;cursor:pointer;}
+/* TUTORIAL */
+#tutorial-overlay{display:none;position:fixed;inset:0;z-index:500;background:rgba(1,8,18,.95);backdrop-filter:blur(8px);align-items:center;justify-content:center;flex-direction:column;gap:16px;}
+#tutorial-overlay.active{display:flex;}
+.tut-box{max-width:460px;width:90%;background:rgba(4,20,41,.9);border:1px solid rgba(10,171,189,.3);border-radius:6px;padding:32px 30px;display:flex;flex-direction:column;gap:14px;}
+.tut-step{font-family:'Cinzel',serif;font-size:10px;letter-spacing:3px;color:var(--teal);text-transform:uppercase;}
+.tut-title{font-family:'Cinzel',serif;font-size:20px;color:var(--tg);letter-spacing:3px;}
+.tut-icon{font-size:48px;text-align:center;}
+.tut-text{font-size:13px;color:var(--tm);line-height:1.7;}
+.tut-btns{display:flex;gap:10px;justify-content:flex-end;}
+.tut-skip{font-family:'Cinzel',serif;font-size:9px;letter-spacing:2px;padding:7px 16px;background:transparent;border:1px solid rgba(255,255,255,.15);color:var(--td);cursor:pointer;}
+.tut-next{font-family:'Cinzel',serif;font-size:10px;letter-spacing:3px;padding:8px 20px;background:var(--teal);border:none;color:var(--deep);cursor:pointer;}
+.tut-dots{display:flex;gap:6px;justify-content:center;}
+.tut-dot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.2);}
+.tut-dot.active{background:var(--tg);}
+#ocean-bg.area-shadow   {background:linear-gradient(180deg,#050005 0%,#080008 50%,#020002 100%);}
+#ocean-bg.area-timevoid {background:linear-gradient(180deg,#000510 0%,#050020 50%,#020010 100%);}
+#ocean-bg.area-dream    {background:linear-gradient(180deg,#030010 0%,#0a0020 50%,#050015 100%);}
+#ocean-bg.area-origin   {background:linear-gradient(180deg,#050505 0%,#0d0d0d 50%,#020202 100%);}
+
+#water-scene.area-shadow   {background:linear-gradient(180deg,#0a0008 0%,#060004 55%,#020001 100%);}
+#water-scene.area-timevoid {background:linear-gradient(180deg,#000818 0%,#000412 55%,#000208 100%);}
+#water-scene.area-dream    {background:linear-gradient(180deg,#080018 0%,#050010 55%,#020008 100%);}
+#water-scene.area-origin   {background:linear-gradient(180deg,#0d0d0d 0%,#080808 55%,#030303 100%);}
+
+#water-surface.area-shadow   {border-bottom:2px solid rgba(80,0,100,.3);background:linear-gradient(180deg,rgba(60,0,80,.15),transparent);}
+#water-surface.area-timevoid {border-bottom:2px solid rgba(80,80,255,.35);background:linear-gradient(180deg,rgba(60,60,200,.15),transparent);}
+#water-surface.area-dream    {border-bottom:2px solid rgba(150,80,255,.35);background:linear-gradient(180deg,rgba(100,50,200,.15),transparent);}
+#water-surface.area-origin   {border-bottom:2px solid rgba(255,255,255,.2);background:linear-gradient(180deg,rgba(200,200,200,.06),transparent);}
+
+::-webkit-scrollbar{width:3px;} ::-webkit-scrollbar-thumb{background:rgba(10,171,189,.28);border-radius:2px;}
+
+/* RARITY COLOR GLOW ON INV FISH */
+@keyframes catchFlash{0%{opacity:1}50%{opacity:.4}100%{opacity:1}}
+.catch-flash{animation:catchFlash .4s ease;}
+.auto-badge{position:absolute;top:3px;left:3px;font-size:8px;padding:1px 5px;border-radius:2px;font-family:'Cinzel',serif;letter-spacing:1px;}
+.auto-badge.manual{background:rgba(10,171,189,.25);color:var(--tg);}
+.auto-badge.auto  {background:rgba(34,204,119,.25);color:var(--grn);}
+
+/* AUTO/MANUAL badge */
+.catch-src{position:absolute;top:3px;left:3px;font-size:7px;padding:1px 4px;border-radius:2px;font-family:'Cinzel',serif;letter-spacing:1px;}
+.catch-src.manual{background:rgba(10,171,189,.25);color:#0aabbd;}
+.catch-src.autoc  {background:rgba(34,204,119,.25);color:#22cc77;}
+#fish-detail-popup{display:none;position:fixed;z-index:400;background:rgba(4,20,41,.97);border:1px solid rgba(10,171,189,.3);border-radius:6px;padding:16px 18px;min-width:200px;max-width:260px;backdrop-filter:blur(12px);pointer-events:none;}
+#fish-detail-popup.show{display:block;}
+.fdp-icon{font-size:32px;text-align:center;margin-bottom:5px;}
+.fdp-name{font-family:'Cinzel',serif;font-size:13px;text-align:center;margin-bottom:4px;}
+.fdp-rarity{font-size:9px;letter-spacing:3px;text-align:center;margin-bottom:8px;text-transform:uppercase;padding:2px 8px;border-radius:2px;display:inline-block;}
+.fdp-row{display:flex;justify-content:space-between;font-size:10px;padding:3px 0;border-bottom:1px solid rgba(255,255,255,.04);}
+.fdp-label{color:var(--td);}
+.fdp-val{color:var(--tm);font-family:'Cinzel',serif;font-size:10px;}
+.fdp-first{font-size:8px;color:var(--td);margin-top:5px;font-style:italic;text-align:center;}
+
+/* COLLECTION FISH CLICK DETAIL */
+.ccard{cursor:pointer;transition:all .2s;}
+.ccard:hover{transform:scale(1.05);}
+
+/* TRADE & APPRAISE OVERLAYS */
+#trade-ov .sgrid{grid-template-columns:repeat(3,1fr);}
+.trade-card{padding:12px;border:1px solid rgba(255,255,255,.08);border-radius:4px;background:rgba(255,255,255,.02);cursor:pointer;transition:all .2s;position:relative;}
+.trade-card:hover{border-color:var(--teal);background:rgba(10,171,189,.07);}
+.trade-card.selected{border-color:var(--gold);background:rgba(240,192,96,.08);}
+.trade-icon{font-size:28px;text-align:center;margin-bottom:6px;}
+.trade-name{font-family:'Cinzel',serif;font-size:10px;text-align:center;margin-bottom:3px;}
+.trade-info{font-size:9px;color:var(--td);text-align:center;}
+.trade-cost{font-size:10px;color:var(--gold);text-align:center;margin-top:4px;font-family:'Cinzel',serif;}
+.trade-btn-row{display:flex;gap:8px;justify-content:center;}
+.trade-exec{font-family:'Cinzel',serif;font-size:10px;letter-spacing:3px;padding:9px 24px;background:var(--gold);border:none;color:var(--deep);cursor:pointer;}
+.trade-exec:hover{background:var(--tg);}
+.trade-exec:disabled{background:rgba(255,255,255,.1);color:var(--td);cursor:default;}
+.appraise-result{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:4px;padding:12px;min-width:280px;text-align:center;}
+.appraise-fish-icon{font-size:36px;margin-bottom:6px;}
+.appraise-title{font-family:'Cinzel',serif;font-size:14px;margin-bottom:4px;}
+.appraise-desc{font-size:11px;color:var(--td);line-height:1.6;}
+
+/* ── LEVEL / EXP ── */
+#exp-bar-wrap{position:relative;z-index:20;}
+.lv-toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'Cinzel',serif;font-size:24px;letter-spacing:4px;color:#88ffcc;text-shadow:0 0 20px #22cc77;pointer-events:none;animation:lvPop 2s ease-out forwards;z-index:1000;}
+@keyframes lvPop{0%{opacity:0;transform:translate(-50%,-50%) scale(.5)}30%{opacity:1;transform:translate(-50%,-50%) scale(1.1)}70%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-60%) scale(1)}}
+
+/* ── TITLES OVERLAY ── */
+#titles-ov .ov-title{color:#ffd700;}
+.title-card{padding:10px 12px;border:1px solid rgba(255,255,255,.08);border-radius:4px;background:rgba(255,255,255,.02);cursor:pointer;text-align:center;transition:all .15s;}
+.title-card:hover{background:rgba(255,255,255,.05);}
+.title-card.owned{cursor:pointer;opacity:1;}
+.title-card.locked{opacity:.35;cursor:default;}
+.title-card.active-title{box-shadow:0 0 12px rgba(255,215,0,.3);}
+.title-name{font-size:9px;letter-spacing:2px;font-family:'Cinzel',serif;}
+.title-meta{font-size:8px;color:var(--td);margin-top:3px;}
+
+/* ── POTIONS ── */
+.potion-card{padding:12px;border:1px solid rgba(255,255,255,.08);border-radius:4px;background:rgba(255,255,255,.02);cursor:pointer;text-align:center;transition:all .15s;}
+.potion-card:hover{background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.2);}
+.potion-card.pot-active{border-color:rgba(34,204,119,.5);background:rgba(34,204,119,.06);}
+.pot-icon{font-size:26px;margin-bottom:4px;}
+.pot-name{font-family:'Cinzel',serif;font-size:10px;letter-spacing:2px;margin-bottom:3px;}
+.pot-desc{font-size:9px;color:var(--td);}
+.pot-price{font-size:10px;color:var(--gold);margin-top:5px;font-family:'Cinzel',serif;}
+.pot-price.cant{color:var(--red);}
+
+/* ── BUFF BAR ── */
+#buff-bar{display:flex;gap:5px;padding:3px 10px;min-height:22px;flex-wrap:wrap;}
+.buff-pill{font-size:9px;padding:2px 7px;border-radius:10px;display:flex;align-items:center;gap:3px;font-family:'Cinzel',serif;}
+
+/* ── HUD level display ── */
+#hud-level{font-size:9px!important;}
+#exp-bar-fill{transition:width .5s cubic-bezier(.4,0,.2,1);}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="lbg" id="login-bg"></div>
+  <div class="lbox">
+    <div class="llogo">F<span>I</span>SCH</div>
+    <div class="ltag">deep waters await</div>
+    <div class="ltabs">
+      <button class="ltab active" id="tab-login">Login</button>
+      <button class="ltab" id="tab-reg">Register</button>
+    </div>
+    <div class="lfield"><label class="llabel">Username</label>
+      <input class="linput" id="l-usn" type="text" placeholder="Enter username" maxlength="20" autocomplete="off" spellcheck="false"></div>
+    <div class="lfield"><label class="llabel">Password</label>
+      <input class="linput" id="l-pw" type="password" placeholder="Enter password" maxlength="32"></div>
+    <div class="lerr" id="l-err"></div>
+    <button class="lbtn" id="l-submit">Login</button>
+    <div class="lacct" id="l-acct">—</div>
+  </div>
+</div>
+
+<!-- TUTORIAL -->
+<div id="tutorial-overlay">
+  <div class="tut-box">
+    <div class="tut-step" id="tut-step">Step 1 / 6</div>
+    <div class="tut-title" id="tut-title">Welcome to FISCH</div>
+    <div class="tut-icon" id="tut-icon">🎣</div>
+    <div class="tut-text" id="tut-text">Welcome, fisher! This tutorial will teach you the basics of FISCH.</div>
+    <div class="tut-dots" id="tut-dots"></div>
+    <div class="tut-btns">
+      <button class="tut-skip" id="tut-skip">Skip Tutorial</button>
+      <button class="tut-next" id="tut-next">Next →</button>
+    </div>
+  </div>
+</div>
+
+<!-- FISH DETAIL POPUP -->
+<div id="fish-popup">
+  <div class="fpp-icon" id="fpp-icon">🐟</div>
+  <div style="text-align:center;margin-bottom:6px"><span class="fpp-rar" id="fpp-rar">Common</span></div>
+  <div class="fpp-name" id="fpp-name">Fish</div>
+  <div id="fpp-rows"></div>
+  <div class="fpp-hint" id="fpp-hint"></div>
+</div>
+
+<!-- TITLES OVERLAY -->
+<div id="titles-ov" class="OV">
+  <div class="ov-title" style="color:#ffd700">🏆 TITLES</div>
+  <div style="font-size:9px;color:var(--td);margin-bottom:10px">Click a title to equip it</div>
+  <div id="titles-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%;max-width:640px;max-height:60vh;overflow-y:auto;"></div>
+  <button class="ov-close" id="titles-close">Close</button>
+</div>
+
+<!-- EVENT NOTIFICATION -->
+<div id="ev-notif">
+  <div class="evn-title" id="evn-title">EVENT!</div>
+  <div class="evn-sub" id="evn-sub"></div>
+  <div class="evn-time" id="evn-time"></div>
+</div>
+
+<!-- ADMIN PANEL (haerin only) -->
+<div id="admin-ov" class="OV">
+  <div class="ov-title" style="color:#ff8800">👑 ADMIN PANEL — haerin</div>
+  <div class="adm-sec">
+    <div class="adm-head">⚡ Global Event Control</div>
+    <div class="adm-row">
+      <select class="adm-sel" id="adm-ev-sel"></select>
+      <input class="adm-inp" id="adm-ev-dur" type="number" value="120" placeholder="Duration (s)">
+      <button class="adm-btn" id="adm-start-ev">▶ Start</button>
+      <button class="adm-btn red" id="adm-stop-ev">⬛ Stop</button>
+    </div>
+    <div style="font-size:8px;color:var(--td);margin-bottom:5px">Active global event (all players see this):</div>
+    <div id="adm-active" style="min-height:22px"></div>
+    <div class="adm-status" id="adm-ev-st"></div>
+  </div>
+  <div class="adm-sec">
+    <div class="adm-head">💰 Gold Manager</div>
+    <div class="adm-row">
+      <span style="font-size:10px;color:var(--td)">Current Gold:</span>
+      <span id="adm-cur-gold" style="font-family:'Cinzel',serif;color:var(--gold)">—</span>
+    </div>
+    <div class="adm-row">
+      <input class="adm-inp" id="adm-gold-amt" type="number" value="10000" placeholder="Amount">
+      <button class="adm-btn" id="adm-add-gold">+ Add Gold</button>
+      <button class="adm-btn red" id="adm-rst-gold">Reset 200g</button>
+    </div>
+    <div class="adm-status" id="adm-gold-st"></div>
+  </div>
+  <div class="adm-sec">
+    <div class="adm-head">⭐ Level Manager</div>
+    <div class="adm-row">
+      <span style="font-size:10px;color:var(--td)">Current Level:</span>
+      <span id="adm-cur-level" style="font-family:'Cinzel',serif;color:#88ffcc">—</span>
+    </div>
+    <div class="adm-row">
+      <input class="adm-inp" id="adm-level-set" type="number" value="10" placeholder="Set level">
+      <button class="adm-btn" id="adm-set-level">Set Level</button>
+      <button class="adm-btn" id="adm-add-level">+1 Level</button>
+    </div>
+    <div class="adm-row">
+      <input class="adm-inp" id="adm-exp-amt" type="number" value="1000" placeholder="Add EXP">
+      <button class="adm-btn" id="adm-add-exp">Add EXP</button>
+    </div>
+    <div class="adm-status" id="adm-lv-st"></div>
+  </div>
+  <div class="adm-sec">
+    <div class="adm-head">📋 Notes</div>
+    <div style="font-size:9px;color:var(--td);line-height:1.9">
+      • Events broadcast via <code style="color:#ff8800">localStorage[fisch_global_event]</code><br>
+      • All players auto-sync every 5 seconds<br>
+      • Stopping an event removes it globally for everyone
+    </div>
+  </div>
+  <button class="ov-close" id="admin-ov-close">Close</button>
+</div>
+
+<div id="ocean-bg" class="area-starter"><div class="wave-layer"></div></div>
+<div id="weather-overlay"></div>
+
+<div id="app">
+<div id="event-banner"></div>
+<div id="exp-bar-wrap" style="width:100%;height:3px;background:rgba(255,255,255,.06);position:relative;">
+  <div id="exp-bar-fill" style="height:100%;width:0%;background:linear-gradient(90deg,#22cc77,#88ffcc);transition:width .4s;box-shadow:0 0 6px #22cc77;"></div>
+</div>
+<div id="buff-bar"></div>
+<header>
+  <div class="logo" id="logo-el">F<span>I</span>SCH</div>
+  <div class="hud">
+    <div class="hud-item"><span>Gold</span><span class="hud-val" id="hud-gold">200</span></div>
+    <div class="hud-item"><span>Catches</span><span class="hud-val teal" id="hud-catches">0</span></div>
+    <div class="hud-item"><span>Rod</span><span class="hud-val" id="hud-rod">🎣 Starter</span></div>
+    <div class="hud-item"><span>Event</span><span class="hud-val" id="hud-event" style="font-size:11px">—</span></div>
+    <div class="hud-item"><span>Level</span><span class="hud-val" id="hud-level" style="font-size:10px;color:#88ffcc">Lv.1</span></div>
+    <div class="hud-item"><span>Title</span><span class="hud-val" id="hud-title" style="font-size:9px">Novice</span></div>
+    <div class="hud-item"><span>Buffs</span><span class="hud-val" id="hud-potions" style="font-size:12px"></span></div>
+    <button id="admin-hdr-btn" style="display:none;font-family:'Cinzel',serif;font-size:8px;letter-spacing:2px;padding:5px 9px;background:rgba(255,136,0,.12);border:1px solid #ff8800;color:#ff8800;cursor:pointer;border-radius:2px;" onclick="openOv('admin-ov')">👑 ADMIN</button>
+    <button id="logout-btn">⏻ Logout</button>
+  </div>
+</header>
+<div id="main">
+  <div class="panel"><div class="ptitle">⚓ Areas</div><div id="area-list"></div></div>
+  <div id="game-area">
+    <div class="biome-display">
+      <div class="biome-name" id="biome-name">STARTER SEA</div>
+      <div class="biome-desc" id="biome-desc">Calm waters, perfect for beginners</div>
+    </div>
+    <div id="water-scene" class="area-starter">
+      <div class="water-surface-el area-starter" id="water-surface-el"></div>
+      <div id="fishing-line"></div><div id="bobber"></div>
+      <div class="cast-hint" id="cast-hint">CLICK TO CAST</div>
+    </div>
+    <div class="status-msg" id="status-msg">Cast your line to begin</div>
+    <button id="cast-btn">⚡ Cast Rod</button>
+    <div class="action-btns">
+      <button class="abtn gold" id="shop-btn">🛒 Shop</button>
+      <button class="abtn gold" id="daily-btn">🕐 Shop<span class="badge" id="daily-badge" style="display:none">!</span></button>
+      <button class="abtn" id="quest-btn">📋 Quests<span class="badge" id="quest-badge" style="display:none">!</span></button>
+      <button class="abtn green" id="items-btn">🎒 Items</button>
+      <button class="abtn purple" id="col-btn">📚 Dex</button>
+      <button class="abtn" id="titles-btn" style="background:rgba(255,215,0,.12);border-color:#ffd700;color:#ffd700">🏆 Titles</button>
+      <button class="abtn green" id="auto-btn">🤖 Auto</button>
+      <button class="abtn" id="trade-btn">🔄 Trade</button>
+    </div>
+    <div class="auto-info" id="auto-info" style="display:none">🤖 Auto-fishing active...</div>
+  </div>
+  <div class="panel">
+    <div class="ptitle">🐟 Bag</div>
+    <div id="inv-list"></div>
+    <button id="sell-all">Sell All Fish</button>
+    <div class="ptitle" style="margin-top:13px">📊 Rod Stats</div>
+    <div id="rod-stats"></div>
+  </div>
+</div>
+</div>
+
+<!-- MINIGAME -->
+<div id="mg-overlay">
+  <div class="mg-title">— REEL IT IN —</div>
+  <div class="mg-fish" id="mg-icon">🐟</div>
+  <div style="font-size:9px;color:var(--td)" id="mg-diff"></div>
+  <div id="cp-wrap"><div id="cp-bar"></div></div>
+  <div style="font-size:8px;color:var(--td);letter-spacing:2px">CATCH PROGRESS</div>
+  <div id="tz-wrap"><div id="tz-zone"></div><div id="tz-ind"></div></div>
+  <div class="mg-hint">Hold SPACE or hold Click — keep indicator in GREEN zone!</div>
+</div>
+
+<!-- CATCH REVEAL -->
+<div id="reveal">
+  <div class="rv-icon" id="rv-icon">🐟</div>
+  <div class="rv-name" id="rv-name">Fish</div>
+  <div class="rv-rarity" id="rv-rarity">Common</div>
+  <div class="rv-mut" id="rv-mut" style="display:none"></div>
+  <div class="rv-stats">
+    <div style="text-align:center"><div class="rv-sv" id="rv-size">0cm</div><div style="font-size:8px;color:var(--td);margin-top:2px">SIZE</div></div>
+    <div style="text-align:center"><div class="rv-sv" id="rv-weight">0kg</div><div style="font-size:8px;color:var(--td);margin-top:2px">WEIGHT</div></div>
+  </div>
+  <div class="rv-val" id="rv-val">+0 Gold</div>
+  <button id="rv-btn">COLLECT FISH</button>
+</div>
+
+<!-- FAIL -->
+<div id="fail">
+  <div style="font-size:50px">🎣</div>
+  <div style="font-family:'Cinzel',serif;font-size:19px;color:var(--red);letter-spacing:4px">LINE SNAPPED</div>
+  <div style="font-size:11px;color:var(--td);font-style:italic">The fish got away...</div>
+  <button id="fail-retry">Try Again</button>
+</div>
+
+<!-- SHOP -->
+<div id="shop-ov" class="OV">
+  <div class="ov-title" style="color:var(--gold)">— TACKLE SHOP —</div>
+  <div class="tab-row" id="shop-tabs">
+    <button class="tbtn active" data-tab="rods">Rods</button>
+    <button class="tbtn" data-tab="baits">Bait</button>
+    <button class="tbtn" data-tab="auto">Auto Fish</button>
+    <button class="tbtn" data-tab="potions">Potions</button>
+  </div>
+  <div class="sgrid" id="shop-grid"></div>
+  <div id="shop-msg" style="font-size:10px;color:var(--td);min-height:14px"></div>
+  <button class="ov-close" id="shop-close">Close</button>
+</div>
+
+<!-- DAILY SHOP -->
+<div id="daily-ov" class="OV">
+  <div class="ov-title" style="color:var(--gold)">— DAILY SHOP —</div>
+  <div style="font-size:9px;color:var(--td);letter-spacing:2px" id="daily-timer">Resets in: 24:00:00</div>
+  <div class="sgrid" id="daily-grid" style="max-height:55vh"></div>
+  <div id="daily-msg" style="font-size:10px;color:var(--td);min-height:14px"></div>
+  <button class="ov-close" id="daily-close">Close</button>
+</div>
+
+<!-- QUESTS -->
+<div id="quest-ov" class="OV">
+  <div class="ov-title" style="color:var(--tg)">— QUESTS —</div>
+  <div class="tab-row" id="quest-tabs">
+    <button class="tbtn active" data-qtab="daily">Daily</button>
+    <button class="tbtn" data-qtab="weekly">Weekly</button>
+    <button class="tbtn" data-qtab="main">Main</button>
+    <button class="tbtn" data-qtab="rod">Rod</button>
+    <button class="tbtn" data-qtab="item">Item</button>
+  </div>
+  <div class="qlist" id="quest-list"></div>
+  <button class="ov-close" id="quest-close">Close</button>
+</div>
+
+<!-- ITEMS -->
+<div id="items-ov" class="OV">
+  <div class="ov-title" style="color:var(--aurora)">— ITEMS —</div>
+  <div class="igrid" id="items-grid"></div>
+  <button class="ov-close" id="items-close">Close</button>
+</div>
+
+<!-- TRADE -->
+<div id="trade-ov" class="OV">
+  <div class="ov-title" style="color:var(--teal)">— TRADE POST —</div>
+  <div class="tab-row" id="trade-tabs">
+    <button class="tbtn active" data-ttab="mutate">🧬 Mutate</button>
+    <button class="tbtn" data-ttab="appraise">🔍 Appraise</button>
+    <button class="tbtn" data-ttab="convert">♻️ Convert</button>
+  </div>
+  <div id="trade-content" style="width:100%;max-width:680px;"></div>
+  <div id="trade-msg" style="font-size:11px;color:var(--td);min-height:16px;text-align:center;"></div>
+  <button class="ov-close" id="trade-close">Close</button>
+</div>
+
+<!-- FISH DETAIL POPUP -->
+<div id="fish-detail-popup">
+  <div class="fdp-icon" id="fdp-icon">🐟</div>
+  <div style="text-align:center"><span class="fdp-rarity" id="fdp-rarity">Common</span></div>
+  <div class="fdp-name" id="fdp-name">Fish</div>
+  <div id="fdp-rows"></div>
+  <div class="fdp-first" id="fdp-first"></div>
+</div>
+
+  <div class="ov-title" style="color:var(--legendary)">FISH CODEX</div>
+  <div style="font-size:10px;color:var(--td)" id="coll-count">0 / 0</div>
+  <div class="cgrid" id="col-grid"></div>
+  <button class="ov-close" id="col-close">Close</button>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════════
+//  ROD SKILLS
+// ═══════════════════════════════════════════════
+const ROD_SKILLS = {
+  starter:  {name:'None',              desc:'No special skill',                     color:'#607080'},
+  bamboo:   {name:'Light Touch',       desc:'Progress loss -20%',                   color:'#88cc66'},
+  bronze:   {name:'Iron Grip',         desc:'Zone width +10%',                      color:'#cc8844'},
+  iron:     {name:'Fortitude',         desc:'Cannot fail if progress > 20%',        color:'#8899aa'},
+  silver:   {name:'Quick Reel',        desc:'Progress gain +25%',                   color:'#aabbcc'},
+  coral:    {name:'Ocean Sense',       desc:'Rare+ fish chance +5%',                color:'#44cc88'},
+  golden:   {name:'Gold Luck',         desc:'Mutation chance +15%',                 color:'#f0c060'},
+  obsidian: {name:'Dark Pull',         desc:'Catch time -20%, zone faster',         color:'#8844ff'},
+  neptune:  {name:'Trident Force',     desc:'All stats +2, Exotic appear',          color:'#4488ff'},
+  cosmic:   {name:'Cosmic Control',    desc:'Control +5, 10% Ascend mutation',      color:'#ff44ff'},
+  stormrod: {name:'Storm Surge',       desc:'Thunder event luck x3',                color:'#aaaaff'},
+  moonrod:  {name:'Moonlit',           desc:'Night fish spawn double',              color:'#ccbbff'},
+  aurorarod:{name:'Aurora\'s Gift',    desc:'Aurora luck +5 extra',                 color:'#88ffcc'},
+  divinerod:{name:'Divine Will',       desc:'10% chance any rarity becomes Divine', color:'#ffffff'},
+  crystalrod:{name:'Crystal Clear',   desc:'Zone width +20%, see fish name early', color:'#88ddff'},
+  shadowrod:   {name:'Shadow Cast',       desc:'Secret fish spawn +10%',              color:'#554466'},
+  titanrod:    {name:'Titan\'s Weight',   desc:'Giant/Big mutation +30%',             color:'#cc6644'},
+  prismrod:    {name:'Prismatic Pull',    desc:'Prismatic mutation chance ×3',        color:'#ff88ff'},
+  goldenrod2:  {name:'Gold Mutation',     desc:'Golden mutation chance ×4',           color:'#f0c060'},
+  darkrod:     {name:'Dark Embrace',      desc:'Dark mutation ×5, Secret fish +15%',  color:'#8844aa'},
+  eliterod:    {name:'Master Angler',     desc:'All mutations +20%, all stats boost', color:'#ffddaa'},
+  voidrod:     {name:'Void Dominion',     desc:'Void fish ×5, divine chance +5%',    color:'#9900cc'},
+  stellarrod:  {name:'Star Collector',    desc:'All luck ×1.5, Shiny ×3',            color:'#ffcc00'},
+  primordrod:  {name:'Ancient Power',     desc:'Size ×1.5, Giant mutation ×2',       color:'#ff6600'},
+  voidobsidian:{name:'Void Dark',         desc:'Dark+Cursed mutations ×3',           color:'#660088'},
+  celestrod:   {name:'Celestial Aim',     desc:'Celestial fish ×3, Blessed ×2',     color:'#8888ff'},
+  huntrod:     {name:'Tracker Sense',     desc:'Hunt event target fish chance ×5',   color:'#ff8800'},
+  eternrod:    {name:'Eternal Fishing',   desc:'Never lose progress, EXP ×1.5',      color:'#aaaaff'},
+  paradoxrod:  {name:'Paradox Strike',    desc:'All fish ×2, mystery mutations',      color:'#ff44ff'},
+  omegaqrod:   {name:'Omega Force',       desc:'All mutations ×3, Cosmic ×2',         color:'#ff0088'},
+  legendrod:   {name:'Legends Will',    desc:'Divine fish ×10, EXP ×2',            color:'#ffd700'},
+};
+
+// ═══════════════════════════════════════════════
+//  DATA
+// ═══════════════════════════════════════════════
+const FISH_DB=[
+  // STARTER SEA
+  {id:'sardine',  name:'Sardine',        icon:'🐟',rarity:'common',   area:'starter',min:8,  max:20,  price:30,  diff:1},
+  {id:'clownfish',name:'Clownfish',      icon:'🐠',rarity:'common',   area:'starter',min:10, max:18,  price:45,  diff:1},
+  {id:'blowfish', name:'Blowfish',       icon:'🐡',rarity:'common',   area:'starter',min:12, max:28,  price:55,  diff:1},
+  {id:'crab',     name:'Crab',           icon:'🦀',rarity:'uncommon', area:'starter',min:8,  max:22,  price:80,  diff:2},
+  {id:'lobster',  name:'Lobster',        icon:'🦞',rarity:'uncommon', area:'starter',min:15, max:35,  price:100, diff:2},
+  {id:'seahorse', name:'Seahorse',       icon:'🐎',rarity:'rare',     area:'starter',min:5,  max:14,  price:200, diff:2},
+  {id:'squid',    name:'Squid',          icon:'🦑',rarity:'rare',     area:'starter',min:20, max:60,  price:250, diff:3},
+  {id:'goldcarp', name:'Golden Carp',    icon:'🐠',rarity:'legendary',area:'starter',min:25, max:55,  price:900, diff:4},
+  // CORAL REEF
+  {id:'clam',     name:'Giant Clam',     icon:'🦪',rarity:'common',   area:'coral',  min:10, max:25,  price:50,  diff:1},
+  {id:'puffer',   name:'Puffer Fish',    icon:'🐡',rarity:'common',   area:'coral',  min:12, max:26,  price:60,  diff:2},
+  {id:'starfish', name:'Starfish',       icon:'⭐',rarity:'uncommon', area:'coral',  min:8,  max:22,  price:110, diff:2},
+  {id:'moray',    name:'Moray Eel',      icon:'🐍',rarity:'uncommon', area:'coral',  min:30, max:80,  price:130, diff:3},
+  {id:'jellyfish',name:'Jellyfish',      icon:'🪼',rarity:'rare',     area:'coral',  min:15, max:40,  price:280, diff:3},
+  {id:'turtle',   name:'Sea Turtle',     icon:'🐢',rarity:'rare',     area:'coral',  min:40, max:90,  price:320, diff:4},
+  {id:'manta',    name:'Manta Ray',      icon:'🐬',rarity:'legendary',area:'coral',  min:80, max:200, price:1500,diff:5},
+  {id:'coralwyrm',name:'Coral Wyrm',     icon:'🐲',rarity:'exotic',   area:'coral',  min:80, max:180, price:4500,diff:7},
+  // DEEP OCEAN
+  {id:'angler',   name:'Anglerfish',     icon:'🐟',rarity:'uncommon', area:'deep',   min:20, max:50,  price:140, diff:3},
+  {id:'octopus',  name:'Octopus',        icon:'🐙',rarity:'rare',     area:'deep',   min:30, max:80,  price:420, diff:4},
+  {id:'colossquid',name:'Colossal Squid',icon:'🦑',rarity:'rare',     area:'deep',   min:100,max:300, price:500, diff:5},
+  {id:'whale',    name:'Blue Whale',     icon:'🐋',rarity:'legendary',area:'deep',   min:500,max:2000,price:3200,diff:6},
+  {id:'shark',    name:'Great Shark',    icon:'🦈',rarity:'legendary',area:'deep',   min:150,max:400, price:2800,diff:6},
+  {id:'kraken',   name:'Kraken',         icon:'🦑',rarity:'mythic',   area:'deep',   min:300,max:800, price:9000,diff:8},
+  {id:'leviathan',name:'Leviathan',      icon:'🐲',rarity:'mythic',   area:'deep',   min:600,max:1500,price:15000,diff:9},
+  {id:'deepspec', name:'Deep Specter',   icon:'👻',rarity:'secret',   area:'deep',   min:100,max:400, price:25000,diff:9},
+  // VOLCANO SEA
+  {id:'lavafish', name:'Lava Fish',      icon:'🔥',rarity:'common',   area:'volcano',min:15, max:40,  price:200, diff:3},
+  {id:'asheel',   name:'Ash Eel',        icon:'⚡',rarity:'uncommon', area:'volcano',min:30, max:70,  price:350, diff:4},
+  {id:'magmacrab',name:'Magma Crab',     icon:'🦀',rarity:'uncommon', area:'volcano',min:20, max:50,  price:380, diff:4},
+  {id:'fireeel',  name:'Fire Eel',       icon:'🌋',rarity:'rare',     area:'volcano',min:60, max:150, price:800, diff:5},
+  {id:'embershark',name:'Ember Shark',   icon:'🦈',rarity:'rare',     area:'volcano',min:80, max:200, price:900, diff:6},
+  {id:'infernal', name:'Infernal Ray',   icon:'💫',rarity:'legendary',area:'volcano',min:100,max:280, price:2500,diff:7},
+  {id:'phoenix',  name:'Phoenix Fish',   icon:'🌟',rarity:'mythic',   area:'volcano',min:40, max:100, price:12000,diff:9},
+  {id:'solarwyrm',name:'Solar Wyrm',     icon:'🌞',rarity:'exotic',   area:'volcano',min:120,max:300, price:18000,diff:9},
+  // ARCTIC
+  {id:'icefish',  name:'Ice Fish',       icon:'🧊',rarity:'common',   area:'arctic', min:15, max:35,  price:70,  diff:2},
+  {id:'polarbass',name:'Polar Bass',     icon:'🐟',rarity:'common',   area:'arctic', min:20, max:45,  price:80,  diff:2},
+  {id:'seal',     name:'Seal',           icon:'🦭',rarity:'uncommon', area:'arctic', min:80, max:180, price:180, diff:3},
+  {id:'orca',     name:'Orca',           icon:'🐳',rarity:'rare',     area:'arctic', min:200,max:500, price:700, diff:5},
+  {id:'narwhal',  name:'Narwhal',        icon:'🦄',rarity:'legendary',area:'arctic', min:200,max:500, price:4500,diff:7},
+  {id:'frostgod', name:'Frost Leviathan',icon:'❄️',rarity:'mythic',   area:'arctic', min:400,max:900, price:14000,diff:10},
+  {id:'glacialwyrm',name:'Glacial Wyrm', icon:'🌀',rarity:'exotic',   area:'arctic', min:200,max:600, price:20000,diff:10},
+  // ABYSS
+  {id:'spirit',   name:'Spirit Fish',    icon:'👻',rarity:'uncommon', area:'abyss',  min:20, max:50,  price:300, diff:4},
+  {id:'voidray',  name:'Void Ray',       icon:'🌌',rarity:'rare',     area:'abyss',  min:60, max:150, price:1200,diff:6},
+  {id:'soulgiant',name:'Soul Giant',     icon:'💀',rarity:'legendary',area:'abyss',  min:200,max:600, price:6000,diff:8},
+  {id:'abyssking',name:'Abyss King',     icon:'🌀',rarity:'mythic',   area:'abyss',  min:500,max:1200,price:20000,diff:10},
+  {id:'voidwyrm', name:'Void Wyrm',      icon:'🕳️',rarity:'exotic',   area:'abyss',  min:300,max:800, price:30000,diff:10},
+  {id:'abssecret',name:'The Nameless',   icon:'❓',rarity:'secret',   area:'abyss',  min:999,max:9999,price:100000,diff:10},
+  // CELESTIAL
+  {id:'starfin',  name:'Starfin',        icon:'⭐',rarity:'common',   area:'celest', min:10, max:25,  price:120, diff:2},
+  {id:'moonray',  name:'Moon Ray',       icon:'🌙',rarity:'uncommon', area:'celest', min:40, max:90,  price:350, diff:3},
+  {id:'aurofish', name:'Aurora Fish',    icon:'🌈',rarity:'rare',     area:'celest', min:30, max:70,  price:800, diff:4},
+  {id:'cometfish',name:'Comet Fish',     icon:'☄️',rarity:'legendary',area:'celest', min:80, max:200, price:4000,diff:7},
+  {id:'stargod',  name:'Star God',       icon:'🌟',rarity:'mythic',   area:'celest', min:200,max:500, price:25000,diff:9},
+  {id:'celest1',  name:'Celestial One',  icon:'✨',rarity:'secret',   area:'celest', min:100,max:300, price:80000,diff:10},
+  // RUINS
+  {id:'anccrab',  name:'Ancient Crab',   icon:'🦀',rarity:'common',   area:'ruins',  min:20, max:45,  price:90,  diff:2},
+  {id:'ruineel',  name:'Ruin Eel',       icon:'🐍',rarity:'uncommon', area:'ruins',  min:50, max:120, price:250, diff:3},
+  {id:'golempike',name:'Golem Pike',     icon:'🗿',rarity:'rare',     area:'ruins',  min:80, max:200, price:900, diff:5},
+  {id:'ancwhale', name:'Ancient Whale',  icon:'🐋',rarity:'legendary',area:'ruins',  min:400,max:1000,price:5000,diff:8},
+  {id:'templegod',name:'Temple God',     icon:'🏛️',rarity:'mythic',   area:'ruins',  min:200,max:600, price:18000,diff:9},
+  // SHADOW DEPTHS
+  {id:'shadowfish',  name:'Shadow Fish',    icon:'🌑',rarity:'common',   area:'shadow',  min:20, max:50,  price:300,  diff:3},
+  {id:'darkeel',     name:'Dark Eel',       icon:'🐍',rarity:'uncommon', area:'shadow',  min:50, max:120, price:600,  diff:4},
+  {id:'phantomray',  name:'Phantom Ray',    icon:'👁️',rarity:'rare',     area:'shadow',  min:80, max:200, price:2000, diff:6},
+  {id:'nighshark',   name:'Night Shark',    icon:'🦈',rarity:'legendary',area:'shadow',  min:200,max:500, price:8000, diff:7},
+  {id:'shadowking',  name:'Shadow King',    icon:'👑',rarity:'mythic',   area:'shadow',  min:400,max:900, price:30000,diff:9},
+  {id:'umbralwyrm',  name:'Umbral Wyrm',    icon:'🌒',rarity:'exotic',   area:'shadow',  min:300,max:700, price:55000,diff:10},
+  {id:'darksecret',  name:'The Darkness',   icon:'⬛',rarity:'secret',   area:'shadow',  min:999,max:9999,price:150000,diff:10},
+  // TIME VOID
+  {id:'timefish',    name:'Time Fish',      icon:'⏰',rarity:'common',   area:'timevoid',min:10, max:30,  price:500,  diff:3},
+  {id:'pastghost',   name:'Past Ghost',     icon:'👻',rarity:'uncommon', area:'timevoid',min:30, max:80,  price:1000, diff:4},
+  {id:'futurefin',   name:'Future Fin',     icon:'🔮',rarity:'rare',     area:'timevoid',min:50, max:130, price:3000, diff:6},
+  {id:'temporalray', name:'Temporal Ray',   icon:'⚡',rarity:'legendary',area:'timevoid',min:100,max:300, price:10000,diff:7},
+  {id:'timeleviath', name:'Time Leviathan', icon:'⏳',rarity:'mythic',   area:'timevoid',min:500,max:1500,price:40000,diff:10},
+  {id:'chronowyrm',  name:'Chrono Wyrm',    icon:'🌀',rarity:'exotic',   area:'timevoid',min:400,max:1000,price:80000,diff:10},
+  // DREAM OCEAN
+  {id:'dreamfish',   name:'Dream Fish',     icon:'💭',rarity:'common',   area:'dream',   min:5,  max:20,  price:800,  diff:2},
+  {id:'nightmareeel',name:'Nightmare Eel',  icon:'😱',rarity:'uncommon', area:'dream',   min:40, max:100, price:1500, diff:4},
+  {id:'lucidray',    name:'Lucid Ray',      icon:'🌈',rarity:'rare',     area:'dream',   min:60, max:150, price:4000, diff:5},
+  {id:'dreamwhale',  name:'Dream Whale',    icon:'🐋',rarity:'legendary',area:'dream',   min:300,max:800, price:15000,diff:8},
+  {id:'dreamgod',    name:'Dream God',      icon:'🌙',rarity:'mythic',   area:'dream',   min:200,max:600, price:60000,diff:10},
+  {id:'dreamwyrmex', name:'Dream Wyrm',     icon:'💫',rarity:'exotic',   area:'dream',   min:500,max:1200,price:120000,diff:10},
+  {id:'dreamsecret', name:'The Dreamer',    icon:'✨',rarity:'secret',   area:'dream',   min:100,max:500, price:300000,diff:10},
+  // ORIGIN POINT
+  {id:'firstfish',   name:'First Fish',     icon:'🐟',rarity:'rare',     area:'origin',  min:1,  max:10,  price:5000, diff:5},
+  {id:'primaleel',   name:'Primal Eel',     icon:'⚡',rarity:'legendary',area:'origin',  min:50, max:200, price:20000,diff:8},
+  {id:'creatorfish', name:'Creator Fish',   icon:'💎',rarity:'mythic',   area:'origin',  min:200,max:600, price:80000,diff:10},
+  {id:'origindiv',   name:'Origin Divine',  icon:'🌟',rarity:'divine',   area:'origin',  min:999,max:9999,price:999999,diff:10},
+  {id:'thebeginning',name:'The Beginning',  icon:'🔆',rarity:'divine',   area:'origin',  min:1,  max:1,   price:5000000,diff:10},
+  // EXTRA STARTER/CORAL/DEEP
+  {id:'parrotfish',  name:'Parrot Fish',    icon:'🦜',rarity:'uncommon', area:'starter',  min:15, max:35,  price:90,   diff:2},
+  {id:'dragonfish',  name:'Dragon Fish',    icon:'🐲',rarity:'rare',     area:'starter',  min:20, max:60,  price:320,  diff:3},
+  {id:'seadragon',   name:'Sea Dragon',     icon:'🐉',rarity:'mythic',   area:'coral',    min:60, max:150, price:11000,diff:8},
+  {id:'ghostfish',   name:'Ghost Fish',     icon:'👻',rarity:'rare',     area:'deep',     min:25, max:70,  price:450,  diff:4},
+  {id:'megalodon',   name:'Megalodon',      icon:'🦈',rarity:'mythic',   area:'deep',     min:800,max:2000,price:50000,diff:10},
+  {id:'lavashark',   name:'Lava Shark',     icon:'🦈',rarity:'legendary',area:'volcano',  min:150,max:400, price:3500, diff:7},
+  {id:'frostdrake',  name:'Frost Drake',    icon:'🐉',rarity:'rare',     area:'arctic',   min:100,max:250, price:800,  diff:5},
+  {id:'abyssalwyrm', name:'Abyssal Wyrm',   icon:'🌀',rarity:'mythic',   area:'abyss',    min:600,max:1500,price:28000,diff:10},
+  {id:'ruinshark',   name:'Ruin Shark',     icon:'🦈',rarity:'rare',     area:'ruins',    min:100,max:260, price:1100, diff:5},
+  {id:'shadoweel',   name:'Shadow Eel',     icon:'🐍',rarity:'rare',     area:'shadow',   min:60, max:160, price:2500, diff:5},
+  {id:'voidcrab',    name:'Void Crab',      icon:'🦀',rarity:'uncommon', area:'shadow',   min:20, max:50,  price:400,  diff:3},
+  {id:'timewhale',   name:'Time Whale',     icon:'🐋',rarity:'rare',     area:'timevoid', min:200,max:600, price:5000, diff:6},
+  {id:'sonicfish',   name:'Sonic Fish',     icon:'🎵',rarity:'rare',     area:'dream',    min:30, max:80,  price:3500, diff:5},
+  // VOID REALM (new area)
+  {id:'nullfish',    name:'Null Fish',      icon:'🖤',rarity:'common',   area:'voidrealm',min:10, max:25,  price:1000, diff:3},
+  {id:'voidshark',   name:'Void Shark',     icon:'🦈',rarity:'uncommon', area:'voidrealm',min:80, max:200, price:3000, diff:5},
+  {id:'erasefish',   name:'Erased Fish',    icon:'⬛',rarity:'rare',     area:'voidrealm',min:50, max:130, price:8000, diff:6},
+  {id:'nullking',    name:'Null King',      icon:'👑',rarity:'legendary',area:'voidrealm',min:200,max:600, price:30000,diff:8},
+  {id:'voidtitan',   name:'Void Titan',     icon:'🌀',rarity:'mythic',   area:'voidrealm',min:500,max:1500,price:100000,diff:10},
+  {id:'voidgodfish', name:'Void God',       icon:'🕳️',rarity:'exotic',   area:'voidrealm',min:300,max:900, price:200000,diff:10},
+  {id:'nothingness', name:'Nothingness',    icon:'💠',rarity:'divine',   area:'voidrealm',min:1,  max:1,   price:2000000,diff:10},
+  // STELLAR OCEAN (new area)
+  {id:'stellarfish', name:'Stellar Fish',   icon:'⭐',rarity:'common',   area:'stellar',  min:15, max:40,  price:1500, diff:3},
+  {id:'nebulaeel',   name:'Nebula Eel',     icon:'🌌',rarity:'uncommon', area:'stellar',  min:50, max:130, price:4000, diff:4},
+  {id:'pulsarfish',  name:'Pulsar Fish',    icon:'💫',rarity:'rare',     area:'stellar',  min:80, max:200, price:12000,diff:6},
+  {id:'blackholeray',name:'Black Hole Ray', icon:'🕳️',rarity:'legendary',area:'stellar',  min:200,max:600, price:45000,diff:8},
+  {id:'quasargod',   name:'Quasar God',     icon:'🌟',rarity:'mythic',   area:'stellar',  min:400,max:1000,price:120000,diff:10},
+  {id:'universewyrm',name:'Universe Wyrm',  icon:'🌐',rarity:'exotic',   area:'stellar',  min:600,max:1500,price:300000,diff:10},
+  {id:'cosmicorigin',name:'Cosmic Origin',  icon:'🔆',rarity:'divine',   area:'stellar',  min:1,  max:1,   price:8000000,diff:10},
+  // PRIMORDIAL SEA (new area)
+  {id:'primfish',    name:'Primordial Fish', icon:'🐟',rarity:'common',   area:'primordial',min:5,  max:15,  price:2000, diff:4},
+  {id:'ancientwyrm', name:'Ancient Wyrm',   icon:'🐲',rarity:'uncommon', area:'primordial',min:80, max:200, price:6000, diff:5},
+  {id:'firstsoul',   name:'First Soul',     icon:'👁️',rarity:'rare',     area:'primordial',min:50, max:150, price:20000,diff:7},
+  {id:'primevil',    name:'Primevil One',   icon:'😈',rarity:'legendary',area:'primordial',min:200,max:700, price:70000,diff:9},
+  {id:'primgod',     name:'Primordial God', icon:'🌋',rarity:'mythic',   area:'primordial',min:500,max:2000,price:200000,diff:10},
+  {id:'thetrue',     name:'The True One',   icon:'💎',rarity:'divine',   area:'primordial',min:1,  max:1,   price:10000000,diff:10},
+  // MORE STARTER SEA
+  {id:'goldfish2',   name:'Lucky Goldfish',  icon:'🐠',rarity:'rare',     area:'starter',   min:8,  max:18, price:400,   diff:3},
+  {id:'rainbow_fish',name:'Rainbow Fish',    icon:'🌈',rarity:'legendary',area:'starter',   min:20, max:50, price:1500,  diff:5},
+  // MORE CORAL REEF
+  {id:'moonclam',    name:'Moon Clam',       icon:'🦪',rarity:'rare',     area:'coral',     min:20, max:50, price:600,   diff:4},
+  {id:'neonshark',   name:'Neon Shark',      icon:'🦈',rarity:'legendary',area:'coral',     min:100,max:300,price:3000,  diff:6},
+  // MORE DEEP OCEAN
+  {id:'spectralwhale',name:'Spectral Whale', icon:'🐋',rarity:'legendary',area:'deep',      min:600,max:1800,price:4500, diff:7},
+  {id:'abysalangel',  name:'Abyssal Angel',  icon:'😇',rarity:'rare',     area:'deep',      min:30, max:80, price:600,   diff:5},
+  // MORE VOLCANO SEA
+  {id:'obsidianray',  name:'Obsidian Ray',   icon:'🔮',rarity:'rare',     area:'volcano',   min:70, max:180,price:1200,  diff:5},
+  {id:'molteneel',    name:'Molten Eel',     icon:'🐍',rarity:'uncommon', area:'volcano',   min:40, max:100,price:400,   diff:3},
+  // MORE ARCTIC
+  {id:'polarshark',   name:'Polar Shark',    icon:'🦈',rarity:'rare',     area:'arctic',    min:150,max:400,price:900,   diff:5},
+  {id:'frozenphoenix',name:'Frozen Phoenix', icon:'🦅',rarity:'mythic',   area:'arctic',    min:80, max:200,price:20000, diff:10},
+  // MORE ABYSS
+  {id:'soulkraken',   name:'Soul Kraken',    icon:'🦑',rarity:'exotic',   area:'abyss',     min:400,max:1000,price:40000,diff:10},
+  {id:'nullspirit',   name:'Null Spirit',    icon:'💀',rarity:'rare',     area:'abyss',     min:50, max:120,price:1500,  diff:6},
+  // MORE CELESTIAL
+  {id:'galaxywhale',  name:'Galaxy Whale',   icon:'🐳',rarity:'mythic',   area:'celest',    min:300,max:900,price:35000, diff:10},
+  {id:'cosmiceel',    name:'Cosmic Eel',     icon:'🌌',rarity:'legendary',area:'celest',    min:100,max:300,price:6000,  diff:7},
+  // MORE RUINS
+  {id:'relicfish',    name:'Relic Fish',     icon:'🏺',rarity:'rare',     area:'ruins',     min:60, max:150,price:1200,  diff:5},
+  {id:'kingphantom',  name:'Phantom King',   icon:'👑',rarity:'mythic',   area:'ruins',     min:300,max:800,price:25000, diff:10},
+  // MORE SHADOW DEPTHS
+  {id:'shadowkraken', name:'Shadow Kraken',  icon:'🦑',rarity:'legendary',area:'shadow',    min:200,max:600,price:12000, diff:8},
+  {id:'darkphoenix',  name:'Dark Phoenix',   icon:'🦅',rarity:'exotic',   area:'shadow',    min:150,max:400,price:70000, diff:10},
+  // MORE TIME VOID
+  {id:'timelord',     name:'Time Lord',      icon:'⌛',rarity:'legendary',area:'timevoid',  min:100,max:300,price:15000, diff:8},
+  {id:'chronogod',    name:'Chrono God',     icon:'🕰️',rarity:'exotic',   area:'timevoid',  min:500,max:1200,price:100000,diff:10},
+  // MORE DREAM OCEAN
+  {id:'nightmarewyrm',name:'Nightmare Wyrm', icon:'💀',rarity:'exotic',   area:'dream',     min:400,max:1000,price:150000,diff:10},
+  {id:'dreamkraken',  name:'Dream Kraken',   icon:'🦑',rarity:'legendary',area:'dream',     min:200,max:600,price:18000, diff:8},
+  // MORE VOID REALM
+  {id:'voidleviath',  name:'Void Leviathan', icon:'🌀',rarity:'mythic',   area:'voidrealm', min:600,max:2000,price:120000,diff:10},
+  {id:'voidphoenix',  name:'Void Phoenix',   icon:'🦅',rarity:'exotic',   area:'voidrealm', min:200,max:600,price:180000,diff:10},
+  // MORE STELLAR OCEAN
+  {id:'supernova',    name:'Supernova Fish',  icon:'💥',rarity:'mythic',   area:'stellar',   min:100,max:300,price:140000,diff:10},
+  {id:'starbeast',    name:'Star Beast',      icon:'⭐',rarity:'legendary',area:'stellar',   min:300,max:800,price:60000, diff:8},
+  // ETERNITY SEA (new area)
+  {id:'eternfish',    name:'Eternity Fish',   icon:'∞', rarity:'common',   area:'eternity',  min:1,  max:10, price:3000,  diff:4},
+  {id:'eterneel',     name:'Eternal Eel',     icon:'🌀',rarity:'uncommon', area:'eternity',  min:50, max:150,price:8000,  diff:5},
+  {id:'timegod',      name:'Time God',        icon:'⌛',rarity:'rare',     area:'eternity',  min:100,max:300,price:25000, diff:7},
+  {id:'eternwhale',   name:'Eternal Whale',   icon:'🐋',rarity:'legendary',area:'eternity',  min:500,max:1500,price:80000,diff:9},
+  {id:'eternlord',    name:'Eternity Lord',   icon:'👑',rarity:'mythic',   area:'eternity',  min:300,max:1000,price:250000,diff:10},
+  {id:'eternity_one', name:'The Eternal',     icon:'∞', rarity:'divine',   area:'eternity',  min:1,  max:1,  price:15000000,diff:10},
+  // PARADOX OCEAN (new area)
+  {id:'paradoxfish',  name:'Paradox Fish',    icon:'🔀',rarity:'common',   area:'paradox',   min:1,  max:1,  price:5000,  diff:5},
+  {id:'paradoxeel',   name:'Paradox Eel',     icon:'🌀',rarity:'uncommon', area:'paradox',   min:10, max:50, price:15000, diff:6},
+  {id:'impossibleray',name:'Impossible Ray',  icon:'❓',rarity:'rare',     area:'paradox',   min:50, max:200,price:50000, diff:8},
+  {id:'contradiction',name:'Contradiction',   icon:'🔀',rarity:'mythic',   area:'paradox',   min:1,  max:9999,price:300000,diff:10},
+  {id:'theparadox',   name:'The Paradox',     icon:'💢',rarity:'divine',   area:'paradox',   min:0,  max:0,  price:50000000,diff:10},
+];
+
+const AREAS=[
+  {id:'starter',  name:'Starter Sea',      desc:'Calm waters',                  emoji:'🌊', cost:0},
+  {id:'coral',    name:'Coral Reef',        desc:'Tropical paradise',            emoji:'🪸', cost:500},
+  {id:'deep',     name:'Deep Ocean',        desc:'Dark abyssal depths',          emoji:'🌑', cost:2000},
+  {id:'volcano',  name:'Volcano Sea',       desc:'Scorching magma currents',     emoji:'🌋', cost:6000},
+  {id:'arctic',   name:'Arctic Waters',     desc:'Frozen mythic seas',           emoji:'🧊', cost:12000},
+  {id:'abyss',    name:'Mystic Abyss',      desc:'Where reality breaks',         emoji:'🌀', cost:25000},
+  {id:'celest',   name:'Celestial Reef',    desc:'Cosmic waters of the sky',     emoji:'🌌', cost:50000},
+  {id:'ruins',    name:'Sunken Ruins',      desc:'Ancient drowned kingdom',      emoji:'🏛️', cost:80000},
+  {id:'divine',   name:'Divine Realm',      desc:'The waters of gods',           emoji:'✨', cost:200000},
+  {id:'shadow',   name:'Shadow Depths',     desc:'Darkness beyond imagination',  emoji:'🌑', cost:350000},
+  {id:'timevoid', name:'Time Void',         desc:'Where past and future merge',  emoji:'⏳', cost:500000},
+  {id:'dream',    name:'Dream Ocean',       desc:'The sea inside your mind',     emoji:'💭', cost:750000},
+  {id:'origin',    name:'Origin Point',      desc:'The source of all water',       emoji:'💎', cost:1500000},
+  {id:'voidrealm', name:'Void Realm',         desc:'Pure nothingness made solid',   emoji:'🕳️', cost:2500000},
+  {id:'stellar',   name:'Stellar Ocean',      desc:'Between the stars themselves',  emoji:'🌐', cost:5000000},
+  {id:'primordial',name:'Primordial Sea',      desc:'Before time, before gods',      emoji:'🔥', cost:10000000},
+  {id:'eternity',  name:'Eternity Sea',      desc:'Where all things end and begin', emoji:'∞',  cost:25000000},
+  {id:'paradox',   name:'Paradox Ocean',     desc:'A place that should not exist',  emoji:'🔀', cost:50000000},
+];
+
+const RODS=[
+  {id:'starter',  name:'Starter Rod',     luck:1,  ctrl:1,  str:1,  spd:1,  price:0,     icon:'🎣', quest:false},
+  {id:'bamboo',   name:'Bamboo Rod',      luck:2,  ctrl:2,  str:1,  spd:2,  price:200,   icon:'🌿', quest:false},
+  {id:'bronze',   name:'Bronze Rod',      luck:3,  ctrl:3,  str:2,  spd:2,  price:600,   icon:'🪄', quest:false},
+  {id:'iron',     name:'Iron Rod',        luck:4,  ctrl:3,  str:4,  spd:3,  price:1200,  icon:'⚙️', quest:false},
+  {id:'silver',   name:'Silver Rod',      luck:5,  ctrl:4,  str:4,  spd:4,  price:2500,  icon:'✨', quest:false},
+  {id:'coral',    name:'Coral Rod',       luck:6,  ctrl:5,  str:4,  spd:5,  price:4500,  icon:'🪸', quest:false},
+  {id:'golden',   name:'Golden Rod',      luck:8,  ctrl:6,  str:6,  spd:5,  price:8000,  icon:'🌟', quest:false},
+  {id:'obsidian', name:'Obsidian Rod',    luck:10, ctrl:8,  str:9,  spd:7,  price:15000, icon:'🔮', quest:false},
+  {id:'neptune',  name:'Neptune Trident', luck:13, ctrl:10, str:12, spd:9,  price:30000, icon:'🔱', quest:false},
+  {id:'cosmic',   name:'Cosmic Rod',      luck:15, ctrl:12, str:15, spd:12, price:60000, icon:'🌌', quest:false},
+  {id:'crystalrod',name:'Crystal Rod',    luck:7,  ctrl:9,  str:5,  spd:8,  price:12000, icon:'💠', quest:false},
+  {id:'titanrod', name:'Titan Rod',       luck:6,  ctrl:4,  str:15, spd:3,  price:20000, icon:'🗿', quest:false},
+  {id:'shadowrod',name:'Shadow Rod',      luck:9,  ctrl:7,  str:6,  spd:10, price:18000, icon:'🌑', quest:false},
+  // QUEST RODS
+  {id:'stormrod',    name:'Storm Rod',       luck:7,  ctrl:7,  str:6,  spd:8,  price:0, icon:'⛈️', quest:true, questId:'qr1'},
+  {id:'moonrod',     name:'Moonlight Rod',   luck:9,  ctrl:8,  str:7,  spd:6,  price:0, icon:'🌙', quest:true, questId:'qr2'},
+  {id:'aurorarod',   name:'Aurora Rod',      luck:12, ctrl:9,  str:8,  spd:10, price:0, icon:'🌈', quest:true, questId:'qr3'},
+  {id:'divinerod',   name:'Divine Rod',      luck:18, ctrl:15, str:18, spd:15, price:0, icon:'💫', quest:true, questId:'qr4'},
+  {id:'prismrod',    name:'Prism Rod',       luck:14, ctrl:11, str:10, spd:12, price:0, icon:'🌈', quest:true, questId:'qr5'},
+  {id:'goldenrod2',  name:'Gilded Mutation', luck:16, ctrl:10, str:12, spd:8,  price:0, icon:'🥇', quest:true, questId:'qr6'},
+  {id:'darkrod',     name:'Dark Matter Rod', luck:20, ctrl:14, str:16, spd:14, price:0, icon:'🕳️', quest:true, questId:'qr7'},
+  {id:'eliterod',    name:'Elite Angler',    luck:22, ctrl:18, str:20, spd:16, price:0,      icon:'👑', quest:true, questId:'qr8'},
+  {id:'voidrod',     name:'Void Rod',         luck:25, ctrl:20, str:22, spd:18, price:0,      icon:'🕳️', quest:true, questId:'qr9'},
+  {id:'stellarrod',  name:'Stellar Rod',      luck:30, ctrl:25, str:28, spd:22, price:0,      icon:'⭐', quest:true, questId:'qr10'},
+  // SHOP RODS (new paid)
+  {id:'primordrod',  name:'Primordial Rod',   luck:18, ctrl:16, str:25, spd:14, price:150000, icon:'🔥', quest:false},
+  {id:'voidobsidian',name:'Void Obsidian',    luck:12, ctrl:10, str:14, spd:9,  price:40000,  icon:'🌑', quest:false},
+  {id:'celestrod',   name:'Celestial Rod',    luck:14, ctrl:12, str:11, spd:13, price:55000,  icon:'🌌', quest:false},
+  {id:'huntrod',     name:'Hunter Rod',       luck:11, ctrl:8,  str:10, spd:11, price:25000,  icon:'🎯', quest:false},
+  {id:'eternrod',    name:'Eternity Rod',     luck:20, ctrl:18, str:22, spd:16, price:250000, icon:'∞',  quest:false},
+  {id:'paradoxrod',  name:'Paradox Rod',      luck:28, ctrl:22, str:26, spd:20, price:500000, icon:'🔀', quest:false},
+  {id:'omegaqrod',   name:'Omega Quest Rod',  luck:35, ctrl:30, str:32, spd:28, price:0,      icon:'⚔️', quest:true, questId:'qr11'},
+  {id:'legendrod',   name:'Legend Rod',       luck:40, ctrl:35, str:38, spd:32, price:0,      icon:'🏆', quest:true, questId:'qr12'},
+];
+
+const BAITS=[
+  {id:'none',    name:'No Bait',         luck:0,  ctrl:0, price:0,    icon:'❌', qty:0},
+  {id:'worm',    name:'Worm',            luck:1,  ctrl:0, price:30,   icon:'🪱', qty:10},
+  {id:'shrimp',  name:'Shrimp',          luck:3,  ctrl:1, price:80,   icon:'🦐', qty:10},
+  {id:'squidb',  name:'Squid Piece',     luck:4,  ctrl:2, price:150,  icon:'🦑', qty:10},
+  {id:'cutfish', name:'Cut Fish',        luck:5,  ctrl:1, price:200,  icon:'🐟', qty:10},
+  {id:'firefly', name:'Firefly Lure',    luck:6,  ctrl:3, price:350,  icon:'✨', qty:5},
+  {id:'magic',   name:'Magic Bait',      luck:9,  ctrl:5, price:700,  icon:'💎', qty:5},
+  {id:'stellar', name:'Stellar Bait',    luck:12, ctrl:6, price:1500, icon:'⭐', qty:5},
+  {id:'void',    name:'Void Bait',       luck:16, ctrl:4, price:3000, icon:'🌌', qty:3},
+  {id:'divine',  name:'Divine Bait',     luck:20, ctrl:10,price:8000, icon:'🌠', qty:2},
+  {id:'legendary',  name:'Legendary Lure',  luck:14, ctrl:8, price:2000,  icon:'🌟', qty:3},
+  // NEW BAITS
+  {id:'crystal',   name:'Crystal Bait',    luck:18, ctrl:12,price:4000,  icon:'💠', qty:3},
+  {id:'shadow_b',  name:'Shadow Bait',     luck:20, ctrl:6, price:5000,  icon:'🌑', qty:2},
+  {id:'prism_b',   name:'Prism Bait',      luck:22, ctrl:14,price:6000,  icon:'🌈', qty:2},
+  {id:'omega',     name:'Omega Bait',      luck:30, ctrl:20,price:15000, icon:'⚡', qty:1},
+  // MUTATION-GUARANTEE BAITS (100% gives that mutation)
+  {id:'royal_bait',   name:'Royal Lure',     luck:25, ctrl:15,price:8000,  icon:'👑', qty:1, mutForce:'royal'},
+  {id:'shadow_bait',  name:'Shadow Lure',    luck:20, ctrl:10,price:7000,  icon:'🌑', qty:1, mutForce:'shadow2'},
+  {id:'radiant_bait', name:'Radiant Lure',   luck:28, ctrl:18,price:12000, icon:'💫', qty:1, mutForce:'radiant'},
+];
+
+// ═══════════════════════════════════════════════
+//  MUTATIONS (expanded)
+// ═══════════════════════════════════════════════
+const MUTATIONS=[
+  {id:'normal',    name:'',            chance:.68,  pMul:1,   sMul:1,   color:'#a0b0c0', exclusive:null},
+  {id:'big',       name:'Big',         chance:.10,  pMul:1.5, sMul:1.4, color:'#88cc66', exclusive:null},
+  {id:'giant',     name:'Giant',       chance:.06,  pMul:2,   sMul:2,   color:'#44cc88', exclusive:null},
+  {id:'golden',    name:'Golden',      chance:.03,  pMul:3.5, sMul:1,   color:'#f0c060', exclusive:null},
+  {id:'albino',    name:'Albino',      chance:.02,  pMul:3,   sMul:.8,  color:'#ffffff', exclusive:null},
+  {id:'dark',      name:'Dark',        chance:.008, pMul:5,   sMul:1.2, color:'#8844aa', exclusive:null},
+  {id:'prismatic', name:'Prismatic',   chance:.004, pMul:8,   sMul:1.5, color:'#ff88ff', exclusive:null},
+  {id:'shiny',     name:'Shiny',       chance:.006, pMul:6,   sMul:1.1, color:'#ffff88', exclusive:null},
+  {id:'sparkling', name:'Sparkling',   chance:.003, pMul:10,  sMul:1.3, color:'#88ffff', exclusive:null},
+  {id:'ancient',   name:'Ancient',     chance:.002, pMul:12,  sMul:1.5, color:'#cc8844', exclusive:null},
+  {id:'phantom',   name:'Phantom',     chance:.0015,pMul:18,  sMul:1,   color:'#ccccff', exclusive:null},
+  {id:'ascend',    name:'Ascended',    chance:.001, pMul:20,  sMul:2,   color:'#ff00ff', exclusive:'cosmic'},
+  // WEATHER-EXCLUSIVE MUTATIONS
+  {id:'electric',  name:'Electric',    chance:.02,  pMul:6,   sMul:1,   color:'#ffee44', exclusive:'thunder'},
+  {id:'stormy',    name:'Stormy',      chance:.025, pMul:4,   sMul:1.3, color:'#8888ff', exclusive:'storm'},
+  {id:'rainy',     name:'Rainy',       chance:.03,  pMul:2.5, sMul:1.1, color:'#88aaff', exclusive:'rain'},
+  {id:'frozen',    name:'Frozen',      chance:.025, pMul:5,   sMul:0.9, color:'#aaddff', exclusive:'blizzard'},
+  {id:'misty',     name:'Misty',       chance:.03,  pMul:3,   sMul:1,   color:'#aabbcc', exclusive:'fog'},
+  {id:'blazing',   name:'Blazing',     chance:.02,  pMul:7,   sMul:1.2, color:'#ff6622', exclusive:'meteor'},
+  {id:'blessed',   name:'Blessed',     chance:.015, pMul:12,  sMul:1,   color:'#88ffcc', exclusive:'aurora'},
+  {id:'cursed',    name:'Cursed',      chance:.015, pMul:15,  sMul:1,   color:'#ff2244', exclusive:'bloodmoon'},
+  // HUNT EVENT MUTATIONS
+  {id:'hunted',    name:'Hunted',      chance:.04,  pMul:25,  sMul:2,   color:'#ff8800', exclusive:'mutation_hunt'},
+  {id:'glowing',   name:'Glowing',     chance:.05,  pMul:8,   sMul:1.5, color:'#00ffaa', exclusive:'mutation_hunt'},
+  // NEW SPECIAL MUTATIONS
+  {id:'rainbow',   name:'Rainbow',     chance:.0025,pMul:14,  sMul:1.6, color:'#ff88cc', exclusive:null},
+  {id:'cosmic2',   name:'Cosmic',      chance:.002, pMul:16,  sMul:1.8, color:'#aa44ff', exclusive:null},
+  {id:'void2',     name:'Void',        chance:.0018,pMul:22,  sMul:1.5, color:'#440088', exclusive:null},
+  {id:'celestial2',name:'Celestial',   chance:.0015,pMul:30,  sMul:2,   color:'#aaaaff', exclusive:null},
+  {id:'divine2',   name:'Divine',      chance:.0005,pMul:50,  sMul:2.5, color:'#ffffff', exclusive:null},
+  // BAIT-EXCLUSIVE (100% guaranteed when bait used)
+  {id:'royal',     name:'Royal',       chance:.0,   pMul:40,  sMul:2,   color:'#ffcc00', exclusive:'royal_bait'},
+  {id:'shadow2',   name:'Shadow',      chance:.0,   pMul:35,  sMul:1.8, color:'#8800ff', exclusive:'shadow_bait'},
+  {id:'radiant',   name:'Radiant',     chance:.0,   pMul:45,  sMul:2.2, color:'#ffee88', exclusive:'radiant_bait'},
+  // EVENT-EXCLUSIVE (new events)
+  {id:'solar',     name:'Solar',       chance:.02,  pMul:9,   sMul:1.4, color:'#ffaa00', exclusive:'solar_flare'},
+  {id:'lunar',     name:'Lunar',       chance:.02,  pMul:11,  sMul:1.3, color:'#aaccff', exclusive:'lunar_eclipse'},
+  {id:'toxic',     name:'Toxic',       chance:.025, pMul:7,   sMul:1.2, color:'#88ff44', exclusive:'toxic_surge'},
+  {id:'ethereal',  name:'Ethereal',    chance:.015, pMul:28,  sMul:2,   color:'#ccffee', exclusive:'ethereal_rift'},
+  {id:'infernal',  name:'Infernal',    chance:.02,  pMul:18,  sMul:1.6, color:'#ff4400', exclusive:'infernal_surge'},
+];
+
+// ═══════════════════════════════════════════════
+//  WEATHER EVENTS
+// ═══════════════════════════════════════════════
+const EVENTS={
+  aurora:         {name:'Aurora Borealis',   icon:'🌈', banner:'🌈 AURORA — Luck ×10!',                  luckMul:10, mythicMul:1,   mutBonus:'blessed',  dur:180, color:'#88ffcc'},
+  bloodmoon:      {name:'Blood Moon',        icon:'🌑', banner:'🌑 BLOOD MOON — Mythic ×2!',             luckMul:1,  mythicMul:2,   mutBonus:'cursed',   dur:180, color:'#ff6677'},
+  rain:           {name:'Rain',              icon:'🌧️', banner:'🌧️ RAIN — Uncommon ×2!',                 luckMul:1.5,mythicMul:1,   mutBonus:'rainy',    dur:120, color:'#88aaff'},
+  storm:          {name:'Storm',             icon:'⛈️', banner:'⛈️ STORM — Rare ×2!',                     luckMul:2,  mythicMul:1.2, mutBonus:'stormy',   dur:150, color:'#aaaaff'},
+  thunder:        {name:'Thunder',           icon:'⚡', banner:'⚡ THUNDER — Electric fish!',              luckMul:2.5,mythicMul:1.5, mutBonus:'electric', dur:90,  color:'#ffee66'},
+  fog:            {name:'Deep Fog',          icon:'🌫️', banner:'🌫️ FOG — Secret fish appear!',            luckMul:1,  mythicMul:1,   mutBonus:'misty',    dur:150, color:'#aabbcc'},
+  blizzard:       {name:'Blizzard',          icon:'❄️', banner:'❄️ BLIZZARD — Arctic fish ×3!',            luckMul:1,  mythicMul:1,   mutBonus:'frozen',   dur:120, color:'#ccddff'},
+  meteor:         {name:'Meteor Shower',     icon:'☄️', banner:'☄️ METEOR — Blazing fish!',                luckMul:3,  mythicMul:2,   mutBonus:'blazing',  dur:90,  color:'#ffaa66'},
+  mutation_hunt:  {name:'Mutation Hunt',     icon:'🎯', banner:'🎯 MUTATION HUNT — Hunted & Glowing fish!',luckMul:5,  mythicMul:2,   mutBonus:'hunted',   dur:120, color:'#ff8800'},
+  shiny_tide:     {name:'Shiny Tide',        icon:'✨', banner:'✨ SHINY TIDE — All fish Shiny!',          luckMul:3,  mythicMul:1,   mutBonus:'shiny',    dur:90,  color:'#ffff88'},
+  sparkling_storm:{name:'Sparkling Storm',   icon:'💎', banner:'💎 SPARKLING STORM — Sparkling fish!',     luckMul:4,  mythicMul:1.5, mutBonus:'sparkling',dur:90,  color:'#88ffff'},
+  megalodon_hunt: {name:'Megalodon Hunt',    icon:'🦈', banner:'🦈 MEGALODON RISES — Hunt the beast!',    luckMul:1,  mythicMul:3,   targetFish:'megalodon',dur:120,color:'#ff4444'},
+  leviathan_hunt: {name:'Leviathan Hunt',    icon:'🐉', banner:'🐉 LEVIATHAN AWAKENS — Hunt it down!',   luckMul:1,  mythicMul:4,   targetFish:'leviathan',dur:120,color:'#cc44ff'},
+  ancient_tide:   {name:'Ancient Tide',      icon:'🏺', banner:'🏺 ANCIENT TIDE — Ancient mutation rises!',luckMul:2, mythicMul:1.5, mutBonus:'ancient',  dur:150, color:'#cc8844'},
+  phantom_mist:   {name:'Phantom Mist',      icon:'👻', banner:'👻 PHANTOM MIST — Phantom fish lurk!',   luckMul:2,  mythicMul:1,   mutBonus:'phantom',  dur:120, color:'#ccccff'},
+  glowing_depths: {name:'Glowing Depths',    icon:'🌊', banner:'🌊 GLOWING DEPTHS — Glowing mutation!',  luckMul:3,  mythicMul:1.5, mutBonus:'glowing',  dur:90,  color:'#00ffaa'},
+  solar_flare:    {name:'Solar Flare',       icon:'☀️', banner:'☀️ SOLAR FLARE — Solar mutation!',          luckMul:4,  mythicMul:2,   mutBonus:'solar',    dur:90,  color:'#ffaa00'},
+  lunar_eclipse:  {name:'Lunar Eclipse',     icon:'🌙', banner:'🌙 LUNAR ECLIPSE — Lunar mutation!',        luckMul:3,  mythicMul:2,   mutBonus:'lunar',    dur:120, color:'#aaccff'},
+  toxic_surge:    {name:'Toxic Surge',       icon:'🧪', banner:'🧪 TOXIC SURGE — Toxic mutation!',          luckMul:3,  mythicMul:1.5, mutBonus:'toxic',    dur:90,  color:'#88ff44'},
+  ethereal_rift:  {name:'Ethereal Rift',     icon:'🌀', banner:'🌀 ETHEREAL RIFT — Ethereal mutation!',     luckMul:6,  mythicMul:3,   mutBonus:'ethereal', dur:90,  color:'#ccffee'},
+  infernal_surge: {name:'Infernal Surge',    icon:'🔥', banner:'🔥 INFERNAL SURGE — Infernal mutation!',   luckMul:4,  mythicMul:2.5, mutBonus:'infernal', dur:90,  color:'#ff4400'},
+  crystal_rain:   {name:'Crystal Rain',      icon:'💠', banner:'💠 CRYSTAL RAIN — Sparkling fish ×5!',      luckMul:5,  mythicMul:2,   mutBonus:'sparkling',dur:90,  color:'#88ddff'},
+  double_luck:    {name:'Double Luck',       icon:'🍀', banner:'🍀 DOUBLE LUCK — 2× everything!',           luckMul:8,  mythicMul:2,   dur:60,  color:'#44ff88'},
+  omega_hunt:     {name:'Omega Hunt',        icon:'⚔️', banner:'⚔️ OMEGA HUNT — ALL mythics ×5!',           luckMul:5,  mythicMul:5,   dur:60,  color:'#ff0088'},
+  divine_hour:    {name:'Divine Hour',       icon:'✨', banner:'✨ DIVINE HOUR — Divine fish appear!',      luckMul:10, mythicMul:5,   dur:60,  color:'#ffffff'},
+};
+
+// ═══════════════════════════════════════════════
+//  LEVEL SYSTEM
+// ═══════════════════════════════════════════════
+const EXP_TABLE=[];
+for(let i=1;i<=100;i++) EXP_TABLE.push(Math.round(50*Math.pow(i,1.6)));
+function getExpNeeded(lvl){return EXP_TABLE[Math.min(lvl-1,99)]||9999999;}
+
+const TITLES=[
+  {id:'Novice',        minLevel:1,  rarity:'common',   color:'#a0b0c0'},
+  {id:'Apprentice',    minLevel:5,  rarity:'common',   color:'#88cc66'},
+  {id:'Fisher',        minLevel:10, rarity:'uncommon', color:'#44cc88'},
+  {id:'Angler',        minLevel:15, rarity:'uncommon', color:'#4488ff'},
+  {id:'Sea Hunter',    minLevel:20, rarity:'rare',     color:'#cc44ff'},
+  {id:'Deep Diver',    minLevel:25, rarity:'rare',     color:'#ff8844'},
+  {id:'Mythic Seeker', minLevel:30, rarity:'legendary',color:'#ff44aa'},
+  {id:'Legend',        minLevel:35, rarity:'legendary',color:'#ffe066'},
+  {id:'Master Angler', minLevel:40, rarity:'mythic',   color:'#ff00ff'},
+  {id:'Ocean Lord',    minLevel:45, rarity:'mythic',   color:'#ff8800'},
+  {id:'Divine Fisher', minLevel:50, rarity:'exotic',   color:'#ffffff'},
+  {id:'Void Walker',   minLevel:60, rarity:'secret',   color:'#8800ff'},
+  {id:'Star Catcher',  minLevel:70, rarity:'secret',   color:'#ffcc00'},
+  {id:'Eternal Fisher',minLevel:80, rarity:'divine',   color:'#aaddff'},
+  {id:'The Chosen',    minLevel:90, rarity:'divine',   color:'#ff88ff'},
+  {id:'God Fisher',    minLevel:100,rarity:'divine',   color:'#ffd700'},
+  // Special catch titles
+  {id:'Megalodon Slayer', special:'megalodon', rarity:'legendary', color:'#ff4444'},
+  {id:'Leviathan Tamer',  special:'leviathan', rarity:'mythic',    color:'#cc44ff'},
+  {id:'First Fisher',     special:'firstcatch',rarity:'common',    color:'#88cc66'},
+  {id:'Mutation Master',  specialCount:'mutations', target:10, rarity:'rare', color:'#ff88ff'},
+  {id:'Void Conqueror',   specialArea:'voidrealm', target:5,  rarity:'exotic',color:'#9900cc'},
+  {id:'Primordial',       specialArea:'primordial',target:3,  rarity:'divine',color:'#ff6600'},
+];
+
+function getExpForFish(fish,mut){
+  const rarExp={common:5,uncommon:10,rare:25,legendary:60,mythic:150,exotic:350,secret:800,divine:2000};
+  let exp=rarExp[fish.rarity]||5;
+  if(mut.id!=='normal')exp=Math.round(exp*(1+mut.pMul*0.1));
+  // Potion bonus
+  if(S.potions?.xpBoost?.active&&Date.now()<S.potions.xpBoost.endsAt)exp*=2;
+  // Rod bonus
+  if(S.currentRod==='eternrod')exp=Math.round(exp*1.5);
+  if(S.currentRod==='legendrod')exp*=2;
+  return exp;
+}
+
+function addExp(amount){
+  S.exp+=amount;
+  let leveled=false;
+  while(S.exp>=getExpNeeded(S.level)&&S.level<100){
+    S.exp-=getExpNeeded(S.level);S.level++;leveled=true;
+    checkLevelRewards(S.level);
+    checkTitleUnlocks();
+  }
+  if(leveled){
+    toast('🎉 Level Up! Now Level '+S.level+'!');
+    playEvSound('aurora');
+  }
+  updateHUD();
+}
+
+const LEVEL_REWARDS={
+  5:   {gold:500,   desc:'500g'},
+  10:  {gold:2000,  bait:{id:'magic',qty:5},   desc:'2000g + Magic Bait ×5'},
+  15:  {gold:5000,  desc:'5000g'},
+  20:  {gold:10000, item:'bloodtotem',          desc:'10000g + Blood Moon Totem'},
+  25:  {gold:20000, bait:{id:'void',qty:3},     desc:'20000g + Void Bait ×3'},
+  30:  {gold:50000, item:'auroratotem',         desc:'50000g + Aurora Totem'},
+  35:  {gold:100000,desc:'100000g'},
+  40:  {gold:200000,bait:{id:'omega',qty:2},    desc:'200000g + Omega Bait ×2'},
+  50:  {gold:500000,item:'meteortotem',bait:{id:'radiant_bait',qty:1},desc:'500000g + Meteor Totem + Radiant Lure'},
+  60:  {gold:1000000,desc:'1,000,000g'},
+  75:  {gold:5000000,desc:'5,000,000g'},
+  100: {gold:99999999,desc:'INFINITE GOLD!'},
+};
+
+function checkLevelRewards(lvl){
+  const r=LEVEL_REWARDS[lvl];if(!r)return;
+  if(r.gold){S.gold+=r.gold;}
+  if(r.bait){S.baitInventory[r.bait.id]=(S.baitInventory[r.bait.id]||0)+r.bait.qty;}
+  if(r.item){S.items[r.item]=(S.items[r.item]||0)+1;}
+  toast('🎁 Level '+lvl+' reward: '+r.desc+'!');
+}
+
+function checkTitleUnlocks(){
+  TITLES.forEach(t=>{
+    if(S.ownedTitles.includes(t.id))return;
+    let unlock=false;
+    if(t.minLevel&&S.level>=t.minLevel)unlock=true;
+    if(t.special==='megalodon'&&S.caughtFishIds.has('megalodon'))unlock=true;
+    if(t.special==='leviathan'&&S.caughtFishIds.has('leviathan'))unlock=true;
+    if(t.special==='firstcatch'&&S.totalCatches>=1)unlock=true;
+    if(t.specialCount==='mutations'&&S.mutationsCaught>=t.target)unlock=true;
+    if(t.specialArea&&(S.areaCatches||{})[t.specialArea]>=(t.target||1))unlock=true;
+    if(unlock){S.ownedTitles.push(t.id);toast('🏆 New Title Unlocked: '+t.id+'!');}
+  });
+}
+
+// ═══════════════════════════════════════════════
+//  POTIONS
+// ═══════════════════════════════════════════════
+const POTIONS=[
+  {id:'luck_potion',   name:'Luck Potion',     icon:'🍀',desc:'Luck ×3 for 5 min',       price:3000, dur:300, type:'luckBoost'},
+  {id:'xp_potion',     name:'XP Potion',       icon:'⚗️',desc:'2× EXP for 5 min',        price:2500, dur:300, type:'xpBoost'},
+  {id:'speed_potion',  name:'Speed Potion',    icon:'⚡',desc:'Auto-fish 2× faster for 3 min',price:4000,dur:180,type:'speedBoost'},
+  {id:'double_potion', name:'Double Potion',   icon:'🪄',desc:'2× items per auto-catch for 3 min',price:5000,dur:180,type:'doublefish'},
+  {id:'mega_luck',     name:'Mega Luck Potion',icon:'🌟',desc:'Luck ×10 for 2 min',      price:8000, dur:120, type:'luckBoost',  mul:10},
+  {id:'god_potion',    name:'God Potion',       icon:'💎',desc:'ALL buffs for 2 min',     price:20000,dur:120, type:'all'},
+];
+
+function usePotion(p){
+  if(S.gold<p.price){toast('Not enough gold!');return;}
+  S.gold-=p.price;
+  const dur=p.dur*1000;
+  const endsAt=Date.now()+dur;
+  if(!S.potions)S.potions={luckBoost:{active:false,endsAt:0},xpBoost:{active:false,endsAt:0},speedBoost:{active:false,endsAt:0},doublefish:{active:false,endsAt:0}};
+  if(p.type==='all'){
+    Object.keys(S.potions).forEach(k=>{S.potions[k]={active:true,endsAt};});
+    toast('💎 GOD MODE for '+p.dur+'s!');
+  } else {
+    S.potions[p.type]={active:true,endsAt};
+    toast(p.icon+' '+p.name+' active for '+(p.dur/60).toFixed(1)+'min!');
+  }
+  // speed potion: restart auto with new interval
+  if((p.type==='speedBoost'||p.type==='all')&&S.autoFishing){
+    clearInterval(S.autoInterval);
+    const spd=S.autoRodId==='autofish_god'?400:S.autoRodId==='autofish_ultra'?800:S.autoRodId==='autofish_elite'?1500:S.autoRodId==='autofish_fast'?3000:6000;
+    S.autoInterval=setInterval(autoFishTick,Math.max(200,Math.round(spd/2)));
+  }
+  updateHUD();saveGame();
+}
+
+// Potion tick (check expiry)
+setInterval(()=>{
+  if(!S.potions)return;
+  const now=Date.now();let changed=false;
+  Object.keys(S.potions).forEach(k=>{
+    if(S.potions[k].active&&now>S.potions[k].endsAt){
+      S.potions[k].active=false;changed=true;
+      toast('⏰ '+k+' potion expired!');
+    }
+  });
+  if(changed)updateHUD();
+},5000);
+
+// ═══════════════════════════════════════════════
+//  QUESTS
+// ═══════════════════════════════════════════════
+function buildQuests(){
+  return{
+    daily:[
+      {id:'d1',name:'Morning Catch', desc:'Catch 3 fish today',       type:'catches',target:3,   reward:100, itemR:null,progress:0,claimed:false},
+      {id:'d2',name:'Sell Daily',    desc:'Sell fish for 500g today', type:'gold',   target:500, reward:150, itemR:null,progress:0,claimed:false},
+      {id:'d3',name:'Explorer',      desc:'Fish in 2 different areas',type:'areas',  target:2,   reward:200, itemR:null,progress:0,claimed:false},
+    ],
+    weekly:[
+      {id:'w1',name:'Weekly Grind',  desc:'Catch 30 fish this week',  type:'catches',target:30,  reward:1000,itemR:null,progress:0,claimed:false,weekly:true},
+      {id:'w2',name:'Weekly Trader', desc:'Earn 5000g this week',     type:'gold',   target:5000,reward:2000,itemR:null,progress:0,claimed:false,weekly:true},
+      {id:'w3',name:'Rare Week',     desc:'Catch 3 rare+ fish',       type:'rarecatch',target:3, reward:3000,itemR:null,progress:0,claimed:false,weekly:true},
+      {id:'w4',name:'Blood Fisher',  desc:'Catch 5 during Blood Moon',type:'bloodcatch',target:5,reward:5000,itemR:null,progress:0,claimed:false,weekly:true},
+      {id:'w5',name:'Weather Watcher',desc:'Catch during 3 diff events',type:'eventcatch',target:3,reward:4000,itemR:null,progress:0,claimed:false,weekly:true},
+    ],
+    main:[
+      {id:'m1',name:'First Catch',      desc:'Catch any fish',             type:'catches',target:1,   reward:50,    itemR:null,progress:0,claimed:false},
+      {id:'m2',name:'Beginner',         desc:'Catch 5 fish',               type:'catches',target:5,   reward:150,   itemR:null,progress:0,claimed:false},
+      {id:'m3',name:'Experienced',      desc:'Catch 20 fish',              type:'catches',target:20,  reward:500,   itemR:null,progress:0,claimed:false},
+      {id:'m4',name:'Master Angler',    desc:'Catch 50 fish',              type:'catches',target:50,  reward:2000,  itemR:null,progress:0,claimed:false},
+      {id:'m5',name:'Legend Fisher',    desc:'Catch 100 fish',             type:'catches',target:100, reward:8000,  itemR:null,progress:0,claimed:false},
+      {id:'m6',name:'Gold Rush',        desc:'Earn 500g selling',          type:'gold',   target:500, reward:200,   itemR:null,progress:0,claimed:false},
+      {id:'m7',name:'Wealthy Fisher',   desc:'Earn 10000g selling',        type:'gold',   target:10000,reward:2000, itemR:null,progress:0,claimed:false},
+      {id:'m8',name:'Rare Hunter',      desc:'Catch a Rare fish',          type:'rarity', target:'rare',    reward:300,  itemR:null,progress:0,claimed:false},
+      {id:'m9',name:'Legendary Chase',  desc:'Catch a Legendary fish',     type:'rarity', target:'legendary',reward:2000,itemR:null,progress:0,claimed:false},
+      {id:'m10',name:'Myth Seeker',     desc:'Catch a Mythic fish',        type:'rarity', target:'mythic',  reward:10000,itemR:null,progress:0,claimed:false},
+      {id:'m11',name:'Exotic Finder',   desc:'Catch an Exotic fish',       type:'rarity', target:'exotic',  reward:25000,itemR:null,progress:0,claimed:false},
+      {id:'m12',name:'Secret Keeper',   desc:'Catch a Secret fish',        type:'rarity', target:'secret',  reward:80000,itemR:null,progress:0,claimed:false},
+      {id:'m13',name:'Divine Touch',    desc:'Catch a Divine fish',        type:'rarity', target:'divine',  reward:500000,itemR:null,progress:0,claimed:false},
+      {id:'m14',name:'Collector I',     desc:'Discover 5 species',         type:'species',target:5,   reward:400,   itemR:null,progress:0,claimed:false},
+      {id:'m15',name:'Collector II',    desc:'Discover 20 species',        type:'species',target:20,  reward:2000,  itemR:null,progress:0,claimed:false},
+      {id:'m16',name:'Collector III',   desc:'Discover 40 species',        type:'species',target:40,  reward:8000,  itemR:null,progress:0,claimed:false},
+      {id:'m17',name:'Mutant Finder',   desc:'Catch a mutated fish',       type:'mutation',target:1,  reward:600,   itemR:null,progress:0,claimed:false},
+      {id:'m18',name:'Storm Born',      desc:'Catch during Thunder event', type:'thundercatch',target:1,reward:2000, itemR:null,progress:0,claimed:false},
+    ],
+    rod:[
+      {id:'qr1',name:'Storm Chaser',     desc:'Catch 10 fish during Blood Moon',       type:'bloodcatch',  target:10,       reward:0, itemR:{type:'rod',id:'stormrod'},   progress:0,claimed:false},
+      {id:'qr2',name:'Moonlit Fisher',   desc:'Catch 5 Legendary fish',                type:'legcount',    target:5,        reward:0, itemR:{type:'rod',id:'moonrod'},    progress:0,claimed:false},
+      {id:'qr3',name:'Aurora Master',    desc:'Catch 3 fish during Aurora event',      type:'auroracatch', target:3,        reward:0, itemR:{type:'rod',id:'aurorarod'},  progress:0,claimed:false},
+      {id:'qr4',name:'Divine Fisher',    desc:'Catch an Exotic fish',                  type:'rarity',      target:'exotic', reward:0, itemR:{type:'rod',id:'divinerod'},  progress:0,claimed:false},
+      {id:'qr5',name:'Prismatic Angler', desc:'Catch 3 Prismatic mutant fish',         type:'prismatic',   target:3,        reward:0, itemR:{type:'rod',id:'prismrod'},   progress:0,claimed:false},
+      {id:'qr6',name:'Golden Touch',     desc:'Catch 5 Golden mutation fish',          type:'goldenmut',   target:5,        reward:0, itemR:{type:'rod',id:'goldenrod2'}, progress:0,claimed:false},
+      {id:'qr7',name:'Dark Master',      desc:'Catch 3 Dark mutation fish',            type:'darkmut',     target:3,        reward:0, itemR:{type:'rod',id:'darkrod'},    progress:0,claimed:false},
+      {id:'qr8',name:'True Master',      desc:'Pay 500,000g + catch 10 Mythic fish',  type:'elitequest',  target:10,       reward:0, itemR:{type:'rod',id:'eliterod'},   progress:0,claimed:false,goldCost:500000},
+      {id:'qr9',name:'Void Seeker',       desc:'Catch 5 Void Realm fish',              type:'areacount',   target:5,        reward:0, itemR:{type:'rod',id:'voidrod'},    progress:0,claimed:false,areaId:'voidrealm'},
+      {id:'qr10',name:'Stellar Fisher',   desc:'Catch 3 Shiny mutation fish',          type:'shinymut',    target:3,        reward:0, itemR:{type:'rod',id:'stellarrod'}, progress:0,claimed:false},
+      {id:'qr11',name:'Omega Slayer',     desc:'Catch 5 Divine fish',                  type:'rarity',      target:'divine', reward:0, itemR:{type:'rod',id:'omegaqrod'},  progress:0,claimed:false},
+      {id:'qr12',name:'Legend Seeker',    desc:'Reach Player Level 50',                type:'level',       target:50,       reward:0, itemR:{type:'rod',id:'legendrod'},  progress:0,claimed:false},
+    ],
+    item:[
+      {id:'qi1',name:'Totem Collector', desc:'Earn 3000g from selling',      type:'gold',   target:3000, reward:0, itemR:{type:'item',id:'bloodtotem',qty:1},  progress:0,claimed:false},
+      {id:'qi2',name:'Aurora Seeker',   desc:'Catch 5 Rare+ fish',           type:'rarecatch',target:5, reward:0, itemR:{type:'item',id:'auroratotem',qty:1}, progress:0,claimed:false},
+      {id:'qi3',name:'Event Rider',     desc:'Catch during 2 diff events',   type:'eventcatch',target:2,reward:0, itemR:{type:'item',id:'stormtotem',qty:1},  progress:0,claimed:false},
+      {id:'qi4',name:'Blizzard Born',   desc:'Catch during Blizzard',        type:'blizzcatch',target:1,reward:0, itemR:{type:'item',id:'meteortotem',qty:1}, progress:0,claimed:false},
+    ],
+  };
+}
+
+// ═══════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════
+const S={
+  gold:200,totalCatches:0,totalGoldEarned:0,mutationsCaught:0,
+  currentArea:'starter',unlockedAreas:['starter'],
+  currentRod:'starter',currentBait:'none',
+  ownedRods:['starter'],baitInventory:{},
+  inventory:[],caughtFishIds:new Set(),
+  phase:'idle',event:null,eventTimer:0,
+  quests:buildQuests(),shopTab:'rods',questTab:'daily',
+  rodsOwned:0,areasVisited:new Set(['starter']),
+  bloodCatches:0,auroraCatches:0,deepTimes:0,
+  rareCatches:0,exoticCatches:0,legCount:0,
+  thunderCatches:0,blizzCatches:0,mythicCatches:0,
+  prismaticCaught:0,goldenMutCaught:0,darkMutCaught:0,
+  eventsEncountered:new Set(),eventCatches:0,
+  items:{bloodtotem:0,auroratotem:0,stormtotem:0,meteortotem:0},
+  autoFishing:false,autoInterval:null,autoRodId:null,
+  // fishLog: {fishId: {biggestSize, firstCaught, count}}
+  fishLog:{},
+  shopTimer:Math.floor(Date.now()/900000),
+  shopPurchased:{},
+  // LEVEL/EXP
+  level:1,exp:0,
+  // POTIONS (active buffs)
+  potions:{luckBoost:{active:false,endsAt:0},xpBoost:{active:false,endsAt:0},speedBoost:{active:false,endsAt:0},doublefish:{active:false,endsAt:0}},
+  // TITLES
+  title:'Novice',ownedTitles:['Novice'],
+  // SHINY/SPARKLE counts for quest rod qr10
+  shinyMutCaught:0,areaCatches:{},prismaticCaught:0,goldenMutCaught:0,darkMutCaught:0,mythicCatches:0,
+};
+
+const MG={
+  active:false,indPos:50,zonePos:33,zoneWidth:34,
+  prog:0,fish:null,diff:1,indVel:0,zoneVel:0,
+  raf:null,holding:false,lastTs:null,
+};
+
+let currentUser=null;
+const OWNER='haerin';
+const GEV_KEY='fisch_global_event';
+
+function getGEV(){try{return JSON.parse(localStorage.getItem(GEV_KEY)||'null');}catch(e){return null;}}
+function setGEV(type,dur){localStorage.setItem(GEV_KEY,JSON.stringify({type,dur,endsAt:Date.now()+dur*1000}));}
+function clearGEV(){localStorage.removeItem(GEV_KEY);}
+
+// Sync global event every 5s (shared across all users)
+setInterval(()=>{
+  const ge=getGEV();
+  if(ge&&Date.now()<ge.endsAt){
+    const rem=Math.round((ge.endsAt-Date.now())/1000);
+    if(S.event!==ge.type){
+      if(S.event)_endEventLocal();
+      S.event=ge.type;S.eventTimer=rem;
+      _applyEventVisuals(ge.type);
+      showEvNotif(ge.type);
+      playEvSound(ge.type);
+    } else {
+      S.eventTimer=rem;
+    }
+  } else if(ge&&Date.now()>=ge.endsAt){
+    clearGEV();
+    if(S.event)endEvent();
+  }
+  // Update admin panel active event display
+  if(currentUser===OWNER){
+    const gel=getGEV();
+    const adel=document.getElementById('adm-active');
+    if(adel){
+      if(gel&&Date.now()<gel.endsAt){
+        const rem=Math.round((gel.endsAt-Date.now())/1000);
+        const ec=EVENTS[gel.type];
+        adel.innerHTML=`<span class="adm-ev-tag" style="background:${ec?.color||'#ff8800'}22;color:${ec?.color||'#ff8800'};border:1px solid ${ec?.color||'#ff8800'}44">${ec?.icon||'?'} ${gel.type} — ${rem}s remaining</span>`;
+      } else {
+        adel.innerHTML='<span style="font-size:9px;color:var(--td);font-style:italic">No active global event</span>';
+      }
+    }
+    const cg=document.getElementById('adm-cur-gold');
+    if(cg)cg.textContent=S.gold.toLocaleString()+'g';
+    const cl=document.getElementById('adm-cur-level');
+    if(cl)cl.textContent='Lv.'+S.level+' ('+S.exp+'/'+getExpNeeded(S.level)+'exp)';
+  }
+},5000);
+
+// ═══════════════════════════════════════════════
+//  TUTORIAL
+// ═══════════════════════════════════════════════
+const TUT_STEPS=[
+  {title:'Welcome to FISCH',   icon:'🎣', text:'Welcome, fisher! FISCH is an ocean fishing game where you explore areas, catch fish, and upgrade your gear. Let\'s learn the basics!'},
+  {title:'Casting Your Rod',   icon:'🌊', text:'Click the water scene or the "Cast Rod" button to throw your line. Wait for a bite — the bobber will start bouncing!'},
+  {title:'The Minigame',       icon:'⚡', text:'When a fish bites, the reeling minigame starts. Hold SPACE or click+hold the tension bar. Keep the golden indicator inside the GREEN zone until the progress bar fills up!'},
+  {title:'Areas & Rarity',     icon:'🗺️', text:'Different areas have different fish. Rarity goes: Common → Uncommon → Rare → Legendary → Mythic → Exotic → Secret → Divine. Better rods = higher luck = rarer fish!'},
+  {title:'Events & Weather',   icon:'🌈', text:'Random weather events occur! Aurora gives 10× Luck, Blood Moon doubles Mythic chance, Thunder creates Electric mutant fish, and much more. Use Totems to trigger events!'},
+  {title:'Auto Fishing',       icon:'🤖', text:'Buy an Auto Fisher from the Shop to fish automatically! Perfect for grinding. Open Shop → Auto Fish tab. Your progress is always saved. Good luck, fisher!'},
+];
+let tutStep=0;
+
+function showTutorial(){
+  tutStep=0;
+  document.getElementById('tutorial-overlay').classList.add('active');
+  renderTutStep();
+}
+function renderTutStep(){
+  const s=TUT_STEPS[tutStep];
+  document.getElementById('tut-step').textContent='Step '+(tutStep+1)+' / '+TUT_STEPS.length;
+  document.getElementById('tut-title').textContent=s.title;
+  document.getElementById('tut-icon').textContent=s.icon;
+  document.getElementById('tut-text').textContent=s.text;
+  const dots=document.getElementById('tut-dots'); dots.innerHTML='';
+  TUT_STEPS.forEach((_,i)=>{
+    const d=document.createElement('div'); d.className='tut-dot'+(i===tutStep?' active':'');
+    dots.appendChild(d);
+  });
+  document.getElementById('tut-next').textContent=tutStep===TUT_STEPS.length-1?'Start Fishing! 🎣':'Next →';
+}
+function setupTutorial(){
+  document.getElementById('tut-next').addEventListener('click',()=>{
+    if(tutStep<TUT_STEPS.length-1){tutStep++;renderTutStep();}
+    else document.getElementById('tutorial-overlay').classList.remove('active');
+  });
+  document.getElementById('tut-skip').addEventListener('click',()=>document.getElementById('tutorial-overlay').classList.remove('active'));
+}
+
+// ═══════════════════════════════════════════════
+//  AUTH & SAVE
+// ═══════════════════════════════════════════════
+const DB_KEY='fisch_v2_accounts';
+function getAccts(){try{return JSON.parse(localStorage.getItem(DB_KEY)||'{}')}catch(e){return{}}}
+function saveAccts(a){localStorage.setItem(DB_KEY,JSON.stringify(a));}
+
+function saveGame(){
+  if(!currentUser)return;
+  const a=getAccts();
+  a[currentUser].save={
+    gold:S.gold,totalCatches:S.totalCatches,totalGoldEarned:S.totalGoldEarned,mutationsCaught:S.mutationsCaught,
+    currentArea:S.currentArea,unlockedAreas:S.unlockedAreas,currentRod:S.currentRod,currentBait:S.currentBait,
+    ownedRods:S.ownedRods,baitInventory:S.baitInventory,
+    inventory:S.inventory.map(c=>({fishId:c.fish.id,mutId:c.mut.id,size:c.size,weight:c.weight,value:c.value,isAuto:c.isAuto})),
+    caughtFishIds:[...S.caughtFishIds],quests:S.quests,rodsOwned:S.rodsOwned,
+    areasVisited:[...S.areasVisited],bloodCatches:S.bloodCatches,auroraCatches:S.auroraCatches,
+    deepTimes:S.deepTimes,rareCatches:S.rareCatches,exoticCatches:S.exoticCatches,legCount:S.legCount,
+    thunderCatches:S.thunderCatches,blizzCatches:S.blizzCatches,mythicCatches:S.mythicCatches,
+    prismaticCaught:S.prismaticCaught,goldenMutCaught:S.goldenMutCaught,darkMutCaught:S.darkMutCaught,
+    eventsEncountered:[...S.eventsEncountered],eventCatches:S.eventCatches,
+    items:S.items,shopTimer:S.shopTimer,shopPurchased:S.shopPurchased,
+    autoRodId:S.autoRodId,fishLog:S.fishLog,
+    level:S.level,exp:S.exp,title:S.title,ownedTitles:S.ownedTitles,
+    potions:S.potions,shinyMutCaught:S.shinyMutCaught,areaCatches:S.areaCatches,
+    prismaticCaught:S.prismaticCaught,goldenMutCaught:S.goldenMutCaught,
+    darkMutCaught:S.darkMutCaught,mythicCatches:S.mythicCatches,
+    savedAt:Date.now(),
+  };
+  saveAccts(a);
+}
+
+function loadGame(sv){
+  if(!sv)return;
+  Object.keys(sv).forEach(k=>{
+    if(k==='caughtFishIds') S.caughtFishIds=new Set(sv.caughtFishIds||[]);
+    else if(k==='areasVisited') S.areasVisited=new Set(sv.areasVisited||['starter']);
+    else if(k==='eventsEncountered') S.eventsEncountered=new Set(sv.eventsEncountered||[]);
+    else if(k==='quests'){
+      const def=buildQuests();
+      ['daily','weekly','main','rod','item'].forEach(tab=>{
+        S.quests[tab]=(sv.quests[tab]||def[tab]).map(sq=>{const dq=def[tab].find(d=>d.id===sq.id);return dq?{...dq,...sq}:sq;});
+        def[tab].forEach(dq=>{if(!S.quests[tab].find(sq=>sq.id===dq.id))S.quests[tab].push(dq);});
+      });
+    } else if(k==='shopTimer'){S.shopTimer=sv[k];}
+    else if(k==='shopPurchased'){S.shopPurchased=sv[k]||{};}
+    else if(k==='fishLog'){S.fishLog=sv[k]||{};}
+    else if(k==='inventory'){
+      S.inventory=(sv.inventory||[]).map(ci=>{
+        const fish=FISH_DB.find(f=>f.id===ci.fishId),mut=MUTATIONS.find(m=>m.id===ci.mutId);
+        return fish&&mut?{fish,mut,size:ci.size,weight:ci.weight,value:ci.value,isAuto:ci.isAuto||false}:null;
+      }).filter(Boolean);
+    } else if(k==='savedAt'){}
+    else if(k in S) S[k]=sv[k];
+  });
+  const area=AREAS.find(a=>a.id===S.currentArea);
+  if(area){document.getElementById('biome-name').textContent=area.name.toUpperCase();document.getElementById('biome-desc').textContent=area.desc;}
+}
+setInterval(saveGame,30000);
+
+// ═══════════════════════════════════════════════
+//  LOGIN SCREEN
+// ═══════════════════════════════════════════════
+function setupLogin(){
+  const bg=document.getElementById('login-bg');
+  for(let i=0;i<14;i++){
+    const b=document.createElement('div');b.className='lbubble';
+    const sz=6+Math.random()*18;
+    b.style.cssText=`width:${sz}px;height:${sz}px;left:${Math.random()*100}%;animation-duration:${8+Math.random()*14}s;animation-delay:${-Math.random()*14}s;`;
+    bg.appendChild(b);
+  }
+  updateAcctLabel();
+  let loginMode=true;
+  document.getElementById('tab-login').addEventListener('click',()=>{loginMode=true;document.getElementById('tab-login').classList.add('active');document.getElementById('tab-reg').classList.remove('active');document.getElementById('l-submit').textContent='Login';document.getElementById('l-err').textContent='';});
+  document.getElementById('tab-reg').addEventListener('click',()=>{loginMode=false;document.getElementById('tab-reg').classList.add('active');document.getElementById('tab-login').classList.remove('active');document.getElementById('l-submit').textContent='Register';document.getElementById('l-err').textContent='';});
+  function doSubmit(){
+    const usn=document.getElementById('l-usn').value.trim();
+    const pw=document.getElementById('l-pw').value;
+    const err=document.getElementById('l-err');
+    if(!usn){err.textContent='Enter a username';return;}
+    if(!pw){err.textContent='Enter a password';return;}
+    if(usn.length<3){err.textContent='Username must be 3+ chars';return;}
+    if(pw.length<4){err.textContent='Password must be 4+ chars';return;}
+    const a=getAccts();
+    if(loginMode){
+      if(!a[usn]){err.textContent='Account not found';return;}
+      if(a[usn].pw!==btoa(pw)){err.textContent='Wrong password';return;}
+      doLogin(usn,a[usn].save);
+    } else {
+      if(a[usn]){err.textContent='Username already taken';return;}
+      if(!/^[a-zA-Z0-9_]+$/.test(usn)){err.textContent='Only letters/numbers/underscore';return;}
+      a[usn]={pw:btoa(pw),save:null,createdAt:Date.now()};
+      saveAccts(a);updateAcctLabel();
+      doLogin(usn,null);
+      setTimeout(()=>showTutorial(),500);
+    }
+  }
+  document.getElementById('l-submit').addEventListener('click',doSubmit);
+  document.getElementById('l-pw').addEventListener('keydown',e=>{if(e.key==='Enter')doSubmit();});
+  document.getElementById('l-usn').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('l-pw').focus();});
+}
+function updateAcctLabel(){
+  const a=getAccts(),c=Object.keys(a).length;
+  document.getElementById('l-acct').textContent=c===0?'No accounts — be the first!':c+' account'+(c===1?'':'s')+' registered';
+}
+function doLogin(usn,sv){
+  currentUser=usn;
+  Object.assign(S,{
+    gold:200,totalCatches:0,totalGoldEarned:0,mutationsCaught:0,
+    currentArea:'starter',unlockedAreas:['starter'],currentRod:'starter',currentBait:'none',
+    ownedRods:['starter'],baitInventory:{},inventory:[],caughtFishIds:new Set(),
+    phase:'idle',event:null,eventTimer:0,quests:buildQuests(),shopTab:'rods',questTab:'daily',
+    rodsOwned:0,areasVisited:new Set(['starter']),bloodCatches:0,auroraCatches:0,deepTimes:0,
+    rareCatches:0,exoticCatches:0,legCount:0,thunderCatches:0,blizzCatches:0,mythicCatches:0,
+    prismaticCaught:0,goldenMutCaught:0,darkMutCaught:0,
+    eventsEncountered:new Set(),eventCatches:0,
+    items:{bloodtotem:0,auroratotem:0,stormtotem:0,meteortotem:0},autoFishing:false,autoInterval:null,autoRodId:null,
+    fishLog:{},shopTimer:Math.floor(Date.now()/900000),shopPurchased:{},
+    level:1,exp:0,title:'Novice',ownedTitles:['Novice'],
+    potions:{luckBoost:{active:false,endsAt:0},xpBoost:{active:false,endsAt:0},speedBoost:{active:false,endsAt:0},doublefish:{active:false,endsAt:0}},
+    shinyMutCaught:0,areaCatches:{},prismaticCaught:0,goldenMutCaught:0,darkMutCaught:0,mythicCatches:0,
+  });
+  if(sv)loadGame(sv);
+  document.getElementById('login-screen').classList.add('hidden');
+  document.title='FISCH — '+usn;
+  const isOwner=usn===OWNER;
+  const obadge=isOwner?'<span class="owner-badge">OWNER</span>':'';
+  document.getElementById('logo-el').innerHTML='F<span style="color:var(--gold)">I</span>SCH <span style="font-size:11px;color:var(--td);letter-spacing:2px">'+usn+'</span>'+obadge;
+  const ahb=document.getElementById('admin-hdr-btn');
+  if(ahb)ahb.style.display=isOwner?'':'none';
+  init();
+}
+function doLogout(){
+  saveGame();
+  if(S.autoInterval){clearInterval(S.autoInterval);S.autoInterval=null;}
+  currentUser=null;
+  document.getElementById('l-usn').value='';document.getElementById('l-pw').value='';document.getElementById('l-err').textContent='';
+  document.getElementById('login-screen').classList.remove('hidden');
+  document.getElementById('logo-el').innerHTML='F<span style="color:var(--gold)">I</span>SCH';
+  updateAcctLabel();
+}
+
+// ═══════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════
+function init(){
+  spawnBubbles();
+  renderAreas();renderRodStats();renderInventory();updateHUD();checkBadges();buildShop15();
+  setInterval(tickEvent,1000);
+  setTimeout(()=>maybeEvent(),8000);setInterval(()=>maybeEvent(),150000);
+  document.getElementById('cast-btn').addEventListener('click',castRod);
+  document.getElementById('water-scene').addEventListener('click',castRod);
+  document.getElementById('sell-all').addEventListener('click',sellAll);
+  document.getElementById('shop-btn').addEventListener('click',()=>openOv('shop-ov'));
+  document.getElementById('shop-close').addEventListener('click',()=>closeOv('shop-ov'));
+  document.getElementById('daily-btn').addEventListener('click',()=>{buildShop15();openOv('daily-ov');});
+  document.getElementById('daily-close').addEventListener('click',()=>closeOv('daily-ov'));
+  document.getElementById('quest-btn').addEventListener('click',()=>{renderQuests();openOv('quest-ov');});
+  document.getElementById('quest-close').addEventListener('click',()=>closeOv('quest-ov'));
+  document.getElementById('items-btn').addEventListener('click',()=>{renderItems();openOv('items-ov');});
+  document.getElementById('items-close').addEventListener('click',()=>closeOv('items-ov'));
+  document.getElementById('col-btn').addEventListener('click',()=>{renderCollection();openOv('col-ov');});
+  document.getElementById('col-close').addEventListener('click',()=>closeOv('col-ov'));
+  document.getElementById('fail-retry').addEventListener('click',resetIdle);
+  document.getElementById('auto-btn').addEventListener('click',toggleAuto);
+  document.getElementById('logout-btn').addEventListener('click',()=>{if(confirm('Logout? Progress is saved.'))doLogout();});
+  document.querySelectorAll('#shop-tabs .tbtn').forEach(t=>t.addEventListener('click',()=>{S.shopTab=t.dataset.tab;document.querySelectorAll('#shop-tabs .tbtn').forEach(x=>x.classList.remove('active'));t.classList.add('active');renderShop();}));
+  document.querySelectorAll('#quest-tabs .tbtn').forEach(t=>t.addEventListener('click',()=>{S.questTab=t.dataset.qtab;document.querySelectorAll('#quest-tabs .tbtn').forEach(x=>x.classList.remove('active'));t.classList.add('active');renderQuests();}));
+  document.addEventListener('keydown',e=>{if(e.code==='Space'){e.preventDefault();MG.holding=true;}});
+  document.addEventListener('keyup',  e=>{if(e.code==='Space')MG.holding=false;});
+  document.getElementById('tz-wrap').addEventListener('mousedown',e=>{e.preventDefault();MG.holding=true;});
+  document.addEventListener('mouseup',()=>MG.holding=false);
+  document.getElementById('tz-wrap').addEventListener('touchstart',e=>{e.preventDefault();MG.holding=true;});
+  document.addEventListener('touchend',()=>MG.holding=false);
+  document.getElementById('trade-btn').addEventListener('click',()=>openTrade());
+  document.getElementById('titles-btn')?.addEventListener('click',()=>{renderTitles();openOv('titles-ov');});
+  document.getElementById('titles-close')?.addEventListener('click',()=>closeOv('titles-ov'));
+  document.getElementById('trade-close').addEventListener('click',()=>closeOv('trade-ov'));
+  document.querySelectorAll('#trade-tabs .tbtn').forEach(t=>t.addEventListener('click',()=>{
+    document.querySelectorAll('#trade-tabs .tbtn').forEach(x=>x.classList.remove('active'));t.classList.add('active');
+    renderTradeContent(t.dataset.ttab);
+  }));
+  // shop refreshes every 15 min
+  setInterval(()=>{
+    const cur=Math.floor(Date.now()/900000);
+    if(cur!==S.shopTimer){S.shopTimer=cur;S.shopPurchased={};buildShop15();toast('🕐 Shop refreshed!');}
+    else buildShop15();
+  },30000);
+  buildShop15();
+  // update area bg on load
+  updateAreaBg(S.currentArea);
+  buildShop15();
+  if(currentUser===OWNER)setupAdminPanel();
+  // check for active global event
+  const ge=getGEV();
+  if(ge&&Date.now()<ge.endsAt){const r=Math.round((ge.endsAt-Date.now())/1000);S.event=ge.type;S.eventTimer=r;_applyEventVisuals(ge.type);}
+}
+
+function openOv(id){document.getElementById(id).classList.add('active');if(id==='shop-ov')renderShop();}
+function closeOv(id){document.getElementById(id).classList.remove('active');}
+
+// ═══════════════════════════════════════════════
+//  AREA BACKGROUNDS
+// ═══════════════════════════════════════════════
+function updateAreaBg(areaId){
+  const bg=document.getElementById('ocean-bg');
+  bg.className='area-'+areaId;
+  const ws=document.getElementById('water-scene');
+  ws.className='area-'+areaId;
+  const wse=document.getElementById('water-surface-el');
+  wse.className='water-surface-el area-'+areaId;
+  // update wave color per area
+  const waveColors={starter:'rgba(10,171,189,.08)',coral:'rgba(34,180,100,.08)',deep:'rgba(20,20,100,.1)',volcano:'rgba(180,60,0,.1)',arctic:'rgba(150,200,255,.08)',abyss:'rgba(100,0,120,.08)',celest:'rgba(80,80,200,.08)',ruins:'rgba(120,100,30,.07)',divine:'rgba(200,200,200,.05)',shadow:'rgba(80,0,120,.07)',timevoid:'rgba(60,60,200,.08)',dream:'rgba(100,50,200,.08)',origin:'rgba(255,255,255,.04)',voidrealm:'rgba(100,0,150,.08)',stellar:'rgba(200,180,0,.06)',primordial:'rgba(200,60,0,.08)'};
+  const wl=bg.querySelector('.wave-layer');
+  if(wl)wl.style.background=`linear-gradient(90deg,transparent,${waveColors[areaId]||'rgba(10,171,189,.08)'},transparent)`;
+}
+
+function spawnBubbles(){
+  const bg=document.getElementById('ocean-bg');
+  bg.querySelectorAll('.bubble').forEach(b=>b.remove());
+  for(let i=0;i<18;i++){
+    const b=document.createElement('div');b.className='bubble';
+    const sz=4+Math.random()*14;
+    const colors={starter:'rgba(10,171,189,.25)',coral:'rgba(34,180,100,.25)',deep:'rgba(50,50,180,.2)',volcano:'rgba(200,80,10,.2)',arctic:'rgba(150,220,255,.2)',abyss:'rgba(120,0,150,.2)',celest:'rgba(100,100,255,.2)',ruins:'rgba(140,120,40,.18)',divine:'rgba(200,200,200,.15)'};
+    const col=colors[S.currentArea]||'rgba(10,171,189,.25)';
+    b.style.cssText=`width:${sz}px;height:${sz}px;left:${Math.random()*100}%;animation-duration:${7+Math.random()*12}s;animation-delay:${-Math.random()*12}s;background:radial-gradient(circle at 30% 30%,${col},transparent);border:1px solid ${col.replace('.25','.12').replace('.2','.1')};`;
+    bg.appendChild(b);
+  }
+  // fish silhouettes in water scene
+  const sc=document.getElementById('water-scene');
+  sc.querySelectorAll('.fish-sil').forEach(f=>f.remove());
+  ['🐟','🐠','🦑','🐡','🐙'].forEach((f,i)=>{
+    const fs=document.createElement('div');fs.className='fish-sil';fs.textContent=f;
+    fs.style.cssText=`top:${28+i*12}%;animation-duration:${7+i*3}s;animation-delay:${-i*2}s;`;
+    sc.appendChild(fs);
+  });
+}
+
+function updateHUD(){
+  document.getElementById('hud-gold').textContent=S.gold.toLocaleString();
+  document.getElementById('hud-catches').textContent=S.totalCatches;
+  // Level/EXP
+  const expN=getExpNeeded(S.level);
+  const lvlEl=document.getElementById('hud-level');
+  if(lvlEl)lvlEl.textContent='Lv.'+S.level+' ('+S.exp+'/'+expN+')';
+  const expBar=document.getElementById('exp-bar-fill');
+  if(expBar)expBar.style.width=Math.round(S.exp/expN*100)+'%';
+  // Title
+  const titleEl=document.getElementById('hud-title');
+  const tt=TITLES.find(t=>t.id===S.title);
+  if(titleEl)titleEl.textContent=S.title;
+  if(titleEl&&tt)titleEl.style.color=tt.color||'#aaa';
+  // Potion indicators
+  // Potion indicators - buff bar
+  const pots=S.potions||{};const now2=Date.now();
+  const buffBar=document.getElementById('buff-bar');
+  if(buffBar){
+    buffBar.innerHTML='';
+    const buffInfo={luckBoost:{icon:'🍀',label:'Luck ×3',col:'#44ff88'},xpBoost:{icon:'⚗️',label:'2× EXP',col:'#88ffcc'},speedBoost:{icon:'⚡',label:'Fast',col:'#ffee44'},doublefish:{icon:'🪄',label:'Double',col:'#ff88ff'}};
+    Object.entries(pots).forEach(([k,v])=>{
+      if(!v.active||now2>=v.endsAt)return;
+      const rem=Math.round((v.endsAt-now2)/1000);
+      const bi=buffInfo[k]||{icon:'?',label:k,col:'#aaa'};
+      const pill=document.createElement('div');
+      pill.className='buff-pill';
+      pill.style.cssText=`background:${bi.col}18;border:1px solid ${bi.col}44;color:${bi.col}`;
+      pill.textContent=`${bi.icon} ${bi.label} ${rem}s`;
+      buffBar.appendChild(pill);
+    });
+  }
+  const potEl=document.getElementById('hud-potions');if(potEl)potEl.textContent='';// handled by buff-bar
+  const rod=RODS.find(r=>r.id===S.currentRod);
+  document.getElementById('hud-rod').textContent=rod.icon+' '+rod.name;
+  const ev=document.getElementById('hud-event');
+  if(S.event){const e=EVENTS[S.event];ev.textContent=e.icon+' '+e.name;ev.style.color=e.color;}
+  else{ev.textContent='—';ev.style.color='var(--td)';}
+  renderRodStats();
+}
+
+// ═══════════════════════════════════════════════
+//  WEATHER / EVENTS
+// ═══════════════════════════════════════════════
+function maybeEvent(){
+  if(S.event||getGEV())return;
+  const keys=Object.keys(EVENTS);
+  if(Math.random()<0.18){const t=keys[Math.floor(Math.random()*keys.length)];startEvent(t,false);}
+}
+function _applyEventVisuals(type){
+  const e=EVENTS[type];if(!e)return;
+  const b=document.getElementById('event-banner');
+  b.className='show '+type;b.textContent=e.banner;
+  buildWeatherParticles(type);updateHUD();
+}
+function startEvent(type,broadcast=false){
+  const e=EVENTS[type];if(!e)return;
+  S.event=type;S.eventTimer=e.dur;
+  _applyEventVisuals(type);
+  showEvNotif(type);
+  playEvSound(type);
+  toast(e.icon+' '+e.name+' started!');
+  if(broadcast)setGEV(type,e.dur);
+}
+function _endEventLocal(){
+  const old=S.event;S.event=null;
+  document.getElementById('event-banner').className='';
+  document.getElementById('event-banner').textContent='';
+  document.getElementById('weather-overlay').innerHTML='';
+  document.getElementById('weather-overlay').className='';
+  if(old)toast('The '+EVENTS[old].name+' has ended...');
+  updateHUD();
+}
+function endEvent(){_endEventLocal();}
+function tickEvent(){
+  if(!S.event)return;
+  S.eventTimer--;
+  if(S.eventTimer<=0){
+    const ge=getGEV();
+    if(ge&&ge.type===S.event&&Date.now()<ge.endsAt)return;// still running globally
+    endEvent();
+  }
+}
+
+// ── EVENT NOTIFICATION ──
+let _notifTm;
+function showEvNotif(type){
+  const e=EVENTS[type];if(!e)return;
+  const el=document.getElementById('ev-notif');if(!el)return;
+  el.style.background=`linear-gradient(135deg,${e.color}18,rgba(3,14,30,.96))`;
+  el.style.borderColor=e.color+'55';
+  document.getElementById('evn-title').style.color=e.color;
+  document.getElementById('evn-title').textContent=e.icon+' '+e.name.toUpperCase();
+  document.getElementById('evn-sub').textContent=e.banner.replace(/^\S+\s/,'');
+  document.getElementById('evn-time').textContent='Lasts '+e.dur+'s';
+  el.classList.add('on');
+  clearTimeout(_notifTm);
+  _notifTm=setTimeout(()=>el.classList.remove('on'),5500);
+}
+
+// ── AUDIO FEEDBACK ──
+function playEvSound(type){
+  try{
+    const ctx=new(window.AudioContext||window.webkitAudioContext)();
+    const osc=ctx.createOscillator(),g=ctx.createGain();
+    osc.connect(g);g.connect(ctx.destination);
+    const freqs={aurora:440,bloodmoon:110,thunder:220,storm:180,rain:330,fog:260,blizzard:380,meteor:550,mutation_hunt:660,shiny_tide:880,sparkling_storm:770,megalodon_hunt:80,leviathan_hunt:90,ancient_tide:350,phantom_mist:300,glowing_depths:440};
+    osc.frequency.value=freqs[type]||440;
+    osc.type=(type==='bloodmoon'||type==='megalodon_hunt'||type==='leviathan_hunt')?'sawtooth':'sine';
+    g.gain.setValueAtTime(.28,ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+1.2);
+    osc.start();osc.stop(ctx.currentTime+1.2);
+  }catch(e){}
+}
+function activateTotem(type){
+  const map={bloodtotem:'bloodmoon',auroratotem:'aurora',stormtotem:'storm',meteortotem:'meteor'};
+  const ev=map[type];if(!ev){toast('Unknown totem');return;}
+  if((S.items[type]||0)<1){toast('No '+type+' left!');return;}
+  S.items[type]--;
+  if(S.event)endEvent();
+  startEvent(ev);renderItems();
+}
+
+function buildWeatherParticles(type){
+  const ov=document.getElementById('weather-overlay');
+  ov.innerHTML='';ov.className=type;
+  if(type==='rain'||type==='storm'){
+    for(let i=0;i<60;i++){
+      const d=document.createElement('div');d.className='rain-drop';
+      const h=30+Math.random()*80;
+      d.style.cssText=`left:${Math.random()*100}%;top:${-h}px;height:${h}px;animation-duration:${.4+Math.random()*.4}s;animation-delay:${-Math.random()*2}s;opacity:${type==='storm'?.8:.5}`;
+      ov.appendChild(d);
+    }
+    if(type==='storm')ov.style.background='rgba(20,10,40,.15)';
+  } else if(type==='thunder'){
+    for(let i=0;i<40;i++){
+      const d=document.createElement('div');d.className='rain-drop';
+      d.style.cssText=`left:${Math.random()*100}%;top:0;height:${40+Math.random()*60}px;animation-duration:${.3+Math.random()*.3}s;animation-delay:${-Math.random()*1}s;opacity:.7;background:linear-gradient(rgba(220,220,100,.7),transparent)`;
+      ov.appendChild(d);
+    }
+    setInterval(()=>{
+      if(S.event!=='thunder')return;
+      const l=document.createElement('div');l.className='lightning';
+      l.style.cssText=`left:${Math.random()*100}%;top:0;height:${80+Math.random()*120}px;`;
+      ov.appendChild(l);setTimeout(()=>l.remove(),200);
+    },800);
+    ov.style.background='rgba(30,20,60,.1)';
+  } else if(type==='blizzard'){
+    for(let i=0;i<80;i++){
+      const s=document.createElement('div');s.className='snow-flake';
+      const sz=2+Math.random()*5;
+      s.style.cssText=`width:${sz}px;height:${sz}px;left:${Math.random()*100}%;top:${-sz}px;animation-duration:${2+Math.random()*4}s;animation-delay:${-Math.random()*4}s;opacity:${.4+Math.random()*.4}`;
+      ov.appendChild(s);
+    }
+    ov.style.background='rgba(180,220,255,.05)';
+  } else if(type==='fog'){
+    for(let i=0;i<3;i++){
+      const f=document.createElement('div');f.className='fog-layer';
+      f.style.cssText=`top:${i*30}%;opacity:.${2+i};animation-delay:${-i*4}s;`;
+      ov.appendChild(f);
+    }
+  } else if(type==='aurora'){
+    ov.style.background='linear-gradient(180deg,rgba(136,255,204,.08) 0%,rgba(68,204,255,.05) 40%,transparent 70%)';
+    ov.style.animation='auroraShimmer 4s ease-in-out infinite alternate';
+  } else if(type==='bloodmoon'){
+    ov.style.background='radial-gradient(ellipse at 50% 0%,rgba(200,20,20,.12) 0%,transparent 70%)';
+  } else if(type==='meteor'){
+    ov.style.background='rgba(30,15,5,.05)';
+    for(let i=0;i<15;i++){
+      const m=document.createElement('div');
+      m.style.cssText=`position:absolute;width:2px;height:${20+Math.random()*40}px;left:${Math.random()*100}%;top:0;background:linear-gradient(rgba(255,160,60,.8),transparent);animation:rainFall ${.5+Math.random()*.5}s linear infinite;animation-delay:${-Math.random()*3}s;transform:rotate(${15+Math.random()*20}deg)`;
+      ov.appendChild(m);
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════
+//  AREAS
+// ═══════════════════════════════════════════════
+function renderAreas(){
+  const list=document.getElementById('area-list');list.innerHTML='';
+  AREAS.forEach(a=>{
+    const unlocked=S.unlockedAreas.includes(a.id),active=S.currentArea===a.id;
+    const div=document.createElement('div');
+    div.className=`area-card ${active?'active':''} ${!unlocked?'area-locked':''}`;
+    div.innerHTML=`<div class="area-name">${a.emoji} ${a.name}</div><div class="area-sub">${unlocked?a.desc:'🔒 '+a.cost.toLocaleString()+'g'}</div>`;
+    div.addEventListener('click',()=>unlocked?selectArea(a.id):tryUnlock(a));
+    list.appendChild(div);
+  });
+}
+function selectArea(id){
+  S.currentArea=id;S.areasVisited.add(id);
+  const a=AREAS.find(x=>x.id===id);
+  document.getElementById('biome-name').textContent=a.name.toUpperCase();
+  document.getElementById('biome-desc').textContent=a.desc;
+  updateAreaBg(id);spawnBubbles();
+  renderAreas();setStatus('You arrive at '+a.name+'. Cast your line!');
+  if(id==='deep')S.deepTimes++;
+  tickQ();
+}
+function tryUnlock(a){
+  if(S.gold>=a.cost){
+    S.gold-=a.cost;S.unlockedAreas.push(a.id);
+    updateHUD();renderAreas();toast('🌊 '+a.name+' UNLOCKED!');selectArea(a.id);
+    S.quests.main.filter(q=>q.type==='area'&&q.target===a.id&&!q.claimed).forEach(q=>q.progress=1);
+    checkBadges();saveGame();
+  }else toast('Need '+a.cost.toLocaleString()+'g to unlock');
+}
+
+// ═══════════════════════════════════════════════
+//  FISHING
+// ═══════════════════════════════════════════════
+function castRod(){
+  if(S.phase!=='idle')return;
+  S.phase='casting';
+  document.getElementById('cast-btn').disabled=true;
+  document.getElementById('cast-hint').style.display='none';
+  const line=document.getElementById('fishing-line'),bobb=document.getElementById('bobber');
+  line.style.display='block';
+  let h=0;const bx=43+Math.random()*14;
+  line.style.left=bx+'%';bobb.style.left=bx+'%';
+  const ext=setInterval(()=>{
+    h+=5;line.style.height=h+'px';bobb.style.top=h+'px';bobb.style.display='block';
+    if(h>=140){clearInterval(ext);S.phase='waiting';setStatus('Waiting for a bite...');scheduleNibble();}
+  },16);
+}
+function scheduleNibble(){
+  setTimeout(()=>{
+    if(S.phase!=='waiting')return;
+    document.getElementById('bobber').classList.add('biting');
+    setStatus('Something is biting! Reel it in!');
+    setTimeout(()=>startMG(),300);
+  },1000+Math.random()*2500);
+}
+
+function pickFish(){
+  let pool=FISH_DB.filter(f=>f.area===S.currentArea);
+  if(!pool.length)pool=FISH_DB.slice(0,5);
+  const rod=RODS.find(r=>r.id===S.currentRod)||RODS[0];
+  const bait=BAITS.find(b=>b.id===S.currentBait)||BAITS[0];
+  let luck=rod.luck+(bait?bait.luck:0);
+  const ev=S.event?EVENTS[S.event]:null;
+  if(ev)luck*=ev.luckMul;
+  if(S.event==='aurora'&&S.currentRod==='aurorarod')luck+=5;
+  let mythicMul=ev?ev.mythicMul:1;
+  if(S.event==='blizzard'&&S.currentArea==='arctic')luck*=3;
+  const secretBonus=S.event==='fog'?0.2:0;
+  // Hunt events: inject target fish into pool at high weight
+  if(ev&&ev.targetFish){
+    const tf=FISH_DB.find(f=>f.id===ev.targetFish);
+    if(tf){const mult=S.currentRod==='huntrod'?20:8;for(let i=0;i<mult;i++)pool.push(tf);}
+  }
+  const w={
+    common:    Math.max(3,55-luck*1.5),
+    uncommon:  20+luck*(S.event==='rain'?2:1),
+    rare:      8+luck*0.8*(S.event==='storm'?2:1),
+    legendary: 3+luck*0.4,
+    mythic:    (0.8+luck*0.12)*mythicMul,
+    exotic:    (0.4+luck*0.04)*(S.currentRod==='neptune'||S.currentRod==='cosmic'?2:1),
+    secret:    (0.04+luck*0.002+secretBonus),
+    divine:    (0.008+luck*0.0004),
+  };
+  let weighted=[];
+  pool.forEach(f=>{const n=Math.max(1,Math.round(w[f.rarity]||1));for(let i=0;i<n;i++)weighted.push(f);});
+  if(!weighted.length)weighted=pool;
+  return weighted[Math.floor(Math.random()*weighted.length)];
+}
+
+// ═══════════════════════════════════════════════
+//  MINIGAME — MUCH EASIER
+// ═══════════════════════════════════════════════
+function startMG(){
+  S.phase='minigame';
+  const fish=pickFish();MG.fish=fish;
+  MG.active=true;MG.prog=0;MG.lastTs=null;MG.indVel=0;MG.indPos=50;
+  const rod=RODS.find(r=>r.id===S.currentRod);
+  const bait=BAITS.find(b=>b.id===S.currentBait);
+  let ctrl=rod.ctrl+(bait?bait.ctrl:0);
+  // Rod skill bonuses
+  if(S.currentRod==='cosmic')ctrl+=5;
+  if(S.currentRod==='crystalrod')ctrl+=3;
+  // wider zone = easier
+  MG.zoneWidth=Math.max(25,50-fish.diff*1.8+ctrl*1.8);
+  // crystal rod extra width
+  if(S.currentRod==='crystalrod')MG.zoneWidth=Math.min(90,MG.zoneWidth+20);
+  MG.zonePos=50-MG.zoneWidth/2;
+  MG.diff=Math.max(1,fish.diff);
+  // obsidian: faster zone
+  MG.zoneVel=(Math.random()>.5?1:-1)*(0.08+fish.diff*(S.currentRod==='obsidian'?.09:.05));
+  document.getElementById('mg-icon').textContent=fish.icon;
+  const dl=['','Very Easy','Easy','Normal','Normal','Moderate','Hard','Hard','Brutal','Extreme','LEGENDARY'];
+  document.getElementById('mg-diff').textContent=fish.name+' — '+(dl[Math.min(fish.diff,10)]);
+  document.getElementById('mg-overlay').classList.add('active');
+  updateMgUI();MG.raf=requestAnimationFrame(mgLoop);
+}
+
+function mgLoop(ts){
+  if(!MG.active)return;
+  const dt=MG.lastTs?Math.min((ts-MG.lastTs)/16,3):1;MG.lastTs=ts;
+  const rod=RODS.find(r=>r.id===S.currentRod);
+  const bait=BAITS.find(b=>b.id===S.currentBait);
+  let ctrl=rod.ctrl+(bait?bait.ctrl:0);
+  if(S.currentRod==='cosmic')ctrl+=5;
+  if(S.currentRod==='crystalrod')ctrl+=3;
+  // zone drift — slower = easier
+  MG.zoneVel+=(Math.random()-.5)*0.1*MG.diff*dt;
+  MG.zoneVel=Math.max(-1.2,Math.min(1.2,MG.zoneVel));
+  MG.zonePos+=MG.zoneVel*dt;
+  if(MG.zonePos<0){MG.zonePos=0;MG.zoneVel*=-1;}
+  if(MG.zonePos+MG.zoneWidth>100){MG.zonePos=100-MG.zoneWidth;MG.zoneVel*=-1;}
+  // indicator — easier: lower fish force, higher hold force
+  const hold=MG.holding?-(2.5+ctrl*0.5):0;
+  const fishF=0.55*MG.diff*dt;
+  MG.indVel+=(fishF+hold)*dt*0.09;
+  MG.indVel*=0.86;
+  MG.indPos+=MG.indVel;MG.indPos=Math.max(2,Math.min(98,MG.indPos));
+  const inZ=MG.indPos>=MG.zonePos&&MG.indPos<=(MG.zonePos+MG.zoneWidth);
+  // progress gain faster, loss slower
+  let gain=inZ?(1.6+rod.spd*0.2)*dt:-(0.45+MG.diff*0.08)*dt;
+  // bamboo skill: -20% loss
+  if(!inZ&&S.currentRod==='bamboo')gain*=0.8;
+  // silver skill: +25% gain
+  if(inZ&&S.currentRod==='silver')gain*=1.25;
+  MG.prog+=gain;MG.prog=Math.max(0,Math.min(100,MG.prog));
+  // iron rod: cannot fail if prog > 20
+  if(S.currentRod==='iron'&&MG.prog>20)MG.prog=Math.max(20,MG.prog);
+  updateMgUI();
+  if(MG.prog>=100){endMG(true);return;}
+  if(MG.prog<=0&&MG.indPos>=96){endMG(false);return;}
+  MG.raf=requestAnimationFrame(mgLoop);
+}
+function updateMgUI(){
+  document.getElementById('cp-bar').style.width=MG.prog+'%';
+  document.getElementById('tz-ind').style.left=MG.indPos+'%';
+  document.getElementById('tz-zone').style.left=MG.zonePos+'%';
+  document.getElementById('tz-zone').style.width=MG.zoneWidth+'%';
+}
+function endMG(ok){
+  MG.active=false;MG.lastTs=null;cancelAnimationFrame(MG.raf);
+  document.getElementById('mg-overlay').classList.remove('active');
+  document.getElementById('bobber').classList.remove('biting');
+  resetLine();
+  if(S.currentBait!=='none'){
+    S.baitInventory[S.currentBait]=(S.baitInventory[S.currentBait]||0)-1;
+    if(S.baitInventory[S.currentBait]<=0){delete S.baitInventory[S.currentBait];S.currentBait='none';toast('Bait ran out!');}
+    renderRodStats();
+  }
+  if(ok)showReveal(MG.fish);
+  else{S.phase='idle';document.getElementById('fail').classList.add('active');}
+}
+function resetLine(){document.getElementById('fishing-line').style.display='none';document.getElementById('bobber').style.display='none';}
+
+// ═══════════════════════════════════════════════
+//  MUTATION LOGIC
+// ═══════════════════════════════════════════════
+function rollMutation(fish){
+  // Build mutation pool based on current event and rod skill
+  let pool=[...MUTATIONS];
+  const ev=S.event;
+  const rod=S.currentRod;
+  // Filter exclusive mutations: only include event-exclusive ones if event matches
+  pool=pool.filter(m=>{
+    if(!m.exclusive)return true;
+    if(m.exclusive==='cosmic')return rod==='cosmic'; // ascend only for cosmic rod
+    return m.exclusive===ev; // weather mutations only during their event
+  });
+  // Golden rod: boost mutation chance
+  if(rod==='golden')pool=pool.map(m=>m.id!=='normal'?{...m,chance:m.chance*1.15}:m);
+  // Titan rod: boost big/giant
+  if(rod==='titanrod')pool=pool.map(m=>(m.id==='big'||m.id==='giant')?{...m,chance:m.chance*1.3}:m);
+  // Cosmic rod: 10% chance ascend (force it)
+  if(rod==='cosmic'&&Math.random()<0.10){return MUTATIONS.find(m=>m.id==='ascend');}
+  // divine rod: 10% any becomes divine quality
+  if(rod==='divinerod'&&Math.random()<0.10){return {id:'divine_wild',name:'Divine',pMul:25,sMul:2,color:'#ffffff'};}
+  // roll
+  let total=pool.reduce((s,m)=>s+m.chance,0);
+  let r=Math.random()*total;
+  for(const m of pool){if(r<m.chance)return m;r-=m.chance;}
+  return MUTATIONS[0];
+}
+
+// ═══════════════════════════════════════════════
+//  CATCH REVEAL
+// ═══════════════════════════════════════════════
+function showReveal(fish){
+  S.phase='reveal';
+  const mut=rollMutation(fish);
+  const sBase=fish.min+Math.random()*(fish.max-fish.min);
+  const size=Math.round(sBase*mut.sMul);
+  const weight=+(size*0.03*(1+Math.random()*.5)).toFixed(2);
+  const sMul=1+(size-fish.min)/Math.max(1,fish.max-fish.min)*.8;
+  const value=Math.round(fish.price*sMul*mut.pMul);
+  const cd={fish,mut,size,weight,value};
+
+  document.getElementById('rv-icon').textContent=fish.icon;
+  document.getElementById('rv-name').textContent=(mut.name?mut.name+' ':'')+fish.name;
+  const re=document.getElementById('rv-rarity');
+  re.textContent=fish.rarity[0].toUpperCase()+fish.rarity.slice(1);
+  re.className='rv-rarity r-'+fish.rarity;
+  document.getElementById('rv-size').textContent=size+'cm';
+  document.getElementById('rv-weight').textContent=weight+'kg';
+  document.getElementById('rv-val').textContent='+'+value.toLocaleString()+' Gold';
+  const me=document.getElementById('rv-mut');
+  if(mut.id!=='normal'){
+    me.textContent='✨ '+mut.name.toUpperCase()+' MUTATION';
+    me.style.display='block';me.style.color=mut.color||'var(--legendary)';
+  } else me.style.display='none';
+
+  document.getElementById('reveal').classList.add('active');
+  document.getElementById('rv-btn').onclick=()=>{
+    document.getElementById('reveal').classList.remove('active');
+    S.inventory.push({...cd,isAuto:false});S.totalCatches++;
+    S.caughtFishIds.add(fish.id);
+    // fish log
+    const logKey=fish.id;
+    if(!S.fishLog[logKey]) S.fishLog[logKey]={biggestSize:0,firstCaught:Date.now(),count:0,biggestValue:0};
+    S.fishLog[logKey].count++;
+    if(size>S.fishLog[logKey].biggestSize){S.fishLog[logKey].biggestSize=size;S.fishLog[logKey].biggestWeight=weight;}
+    if(value>S.fishLog[logKey].biggestValue)S.fishLog[logKey].biggestValue=value;
+    if(mut.id!=='normal')S.mutationsCaught++;
+    if(mut.id==='prismatic')S.prismaticCaught=(S.prismaticCaught||0)+1;
+    if(mut.id==='golden')S.goldenMutCaught=(S.goldenMutCaught||0)+1;
+    if(mut.id==='dark')S.darkMutCaught=(S.darkMutCaught||0)+1;
+    if(mut.id==='shiny'||mut.id==='sparkling')S.shinyMutCaught=(S.shinyMutCaught||0)+1;
+    if(fish.rarity==='mythic')S.mythicCatches=(S.mythicCatches||0)+1;
+    if(!S.areaCatches)S.areaCatches={};
+    S.areaCatches[S.currentArea]=(S.areaCatches[S.currentArea]||0)+1;
+    if(mut.id==='prismatic')S.prismaticCaught++;
+    if(mut.id==='golden')S.goldenMutCaught++;
+    if(mut.id==='dark')S.darkMutCaught++;
+    if(S.event==='bloodmoon')S.bloodCatches++;
+    if(S.event==='aurora')S.auroraCatches++;
+    if(S.event==='thunder')S.thunderCatches++;
+    if(S.event==='blizzard')S.blizzCatches++;
+    if(fish.rarity==='mythic')S.mythicCatches++;
+    if(S.event){S.eventsEncountered.add(S.event);S.eventCatches++;}
+    const hi=['rare','legendary','mythic','exotic','secret','divine'];
+    if(hi.includes(fish.rarity))S.rareCatches++;
+    if(['exotic','secret','divine'].includes(fish.rarity))S.exoticCatches++;
+    if(fish.rarity==='legendary')S.legCount++;
+    // rarity quests
+    S.quests.main.filter(q=>q.type==='rarity'&&q.target===fish.rarity&&!q.claimed).forEach(q=>q.progress=1);
+    S.quests.rod.filter(q=>q.type==='rarity'&&q.target===fish.rarity&&!q.claimed).forEach(q=>q.progress=1);
+    S.quests.rod.filter(q=>q.type==='legcount'&&!q.claimed).forEach(q=>q.progress=S.legCount);
+    renderInventory();updateHUD();tickQ();checkBadges();saveGame();
+    toast('Caught '+(mut.name?mut.name+' ':'')+fish.name+'! Worth '+value.toLocaleString()+'g');
+    resetIdle();
+  };
+}
+
+// ═══════════════════════════════════════════════
+//  AUTO FISHING
+// ═══════════════════════════════════════════════
+function toggleAuto(){
+  if(!S.autoRodId){toast('Buy an Auto Fisher from Shop → Auto Fish!');return;}
+  S.autoFishing=!S.autoFishing;
+  const btn=document.getElementById('auto-btn'),info=document.getElementById('auto-info');
+  if(S.autoFishing){
+    btn.classList.add('auto-on');btn.textContent='🤖 AUTO ON';
+    info.style.display='block';
+    const spd=S.autoRodId==='autofish_god'?400:S.autoRodId==='autofish_ultra'?800:S.autoRodId==='autofish_elite'?1500:S.autoRodId==='autofish_fast'?3000:6000;
+    const realSpd=(S.potions?.speedBoost?.active&&Date.now()<S.potions.speedBoost.endsAt)?Math.max(200,Math.round(spd/2)):spd;
+    S.autoInterval=setInterval(autoFishTick,realSpd);
+  } else {
+    btn.classList.remove('auto-on');btn.textContent='🤖 Auto';
+    info.style.display='none';
+    clearInterval(S.autoInterval);S.autoInterval=null;
+  }
+}
+function autoFishTick(){
+  if(!S.autoFishing||S.phase!=='idle')return;
+  const fish=pickFish();
+  const mut=rollMutation(fish);
+  const sBase=fish.min+Math.random()*(fish.max-fish.min);
+  const size=Math.round(sBase*mut.sMul);
+  const weight=+(size*0.03*(1+Math.random()*.5)).toFixed(2);
+  const sMul=1+(size-fish.min)/Math.max(1,fish.max-fish.min)*.8;
+  const value=Math.round(fish.price*sMul*mut.pMul);
+  const cd={fish,mut,size,weight,value};
+  S.inventory.push({...cd,isAuto:true});S.totalCatches++;S.caughtFishIds.add(fish.id);
+  if(mut.id!=='normal')S.mutationsCaught++;
+  if(mut.id==='prismatic')S.prismaticCaught++;
+  if(mut.id==='golden')S.goldenMutCaught++;
+  if(mut.id==='dark')S.darkMutCaught++;
+  if(S.event==='bloodmoon')S.bloodCatches++;
+  if(S.event==='aurora')S.auroraCatches++;
+  if(S.event){S.eventsEncountered.add(S.event);S.eventCatches++;}
+  const hi=['rare','legendary','mythic','exotic','secret','divine'];
+  if(hi.includes(fish.rarity))S.rareCatches++;
+  if(fish.rarity==='legendary')S.legCount++;
+  if(fish.rarity==='mythic')S.mythicCatches++;
+  // fish log
+  if(!S.fishLog[fish.id])S.fishLog[fish.id]={biggestSize:0,firstCaught:Date.now(),count:0,biggestValue:0};
+  S.fishLog[fish.id].count++;
+  if(cd.size>S.fishLog[fish.id].biggestSize){S.fishLog[fish.id].biggestSize=cd.size;S.fishLog[fish.id].biggestWeight=cd.weight;}
+  if(cd.value>S.fishLog[fish.id].biggestValue)S.fishLog[fish.id].biggestValue=cd.value;
+  S.quests.main.filter(q=>q.type==='rarity'&&q.target===fish.rarity&&!q.claimed).forEach(q=>q.progress=1);
+  // EXP
+  const aexp=getExpForFish(fish,mut);addExp(aexp);
+  // Double fish potion
+  if(S.potions?.doublefish?.active&&Date.now()<S.potions.doublefish.endsAt){
+    S.inventory.push({...cd,isAuto:true});S.totalCatches++;
+  }
+  // Check titles
+  checkTitleUnlocks();
+  renderInventory();updateHUD();tickQ();checkBadges();
+  toast('🤖 Auto: '+(mut.name?'['+mut.name+'] ':'')+fish.name+' +'+aexp+'exp');
+}
+
+// ═══════════════════════════════════════════════
+//  INVENTORY / SELL
+// ═══════════════════════════════════════════════
+const RCOLS={common:'#a0b0c0',uncommon:'#44cc88',rare:'#4488ff',legendary:'#cc44ff',mythic:'#ff8844',exotic:'#ff44aa',secret:'#ffe066',divine:'#ffffff'};
+function renderInventory(){
+  const list=document.getElementById('inv-list');
+  if(!S.inventory.length){list.innerHTML='<div style="font-size:9px;color:var(--td);font-style:italic;padding:4px 0">No fish yet</div>';return;}
+  list.innerHTML='';
+  S.inventory.forEach((c,i)=>{
+    const div=document.createElement('div');
+    div.className='inv-fish rarity-'+c.fish.rarity;
+    const lbl=(c.mut.id!=='normal'?c.mut.name+' ':'')+c.fish.name;
+    const badge=c.isAuto
+      ?'<span class="auto-badge auto">AUTO</span>'
+      :'<span class="auto-badge manual">CAST</span>';
+    div.innerHTML=`${badge}<div class="if-icon">${c.fish.icon}</div><div class="if-info"><div class="if-name">${lbl}</div><div class="if-sub">${c.size}cm·${c.weight}kg</div></div><div class="if-val">${c.value.toLocaleString()}g</div>`;
+    div.addEventListener('click',()=>sellOne(i));
+    // hover to show popup
+    div.addEventListener('mouseenter',e=>showFishDetailPopup(c.fish,e));
+    div.addEventListener('mouseleave',()=>hideFishDetailPopup());
+    div.addEventListener('mousemove',e=>moveFishDetailPopup(e));
+    list.appendChild(div);
+  });
+}
+function sellOne(i){
+  const c=S.inventory[i];S.gold+=c.value;S.totalGoldEarned+=c.value;
+  S.inventory.splice(i,1);updateHUD();renderInventory();tickQ();checkBadges();saveGame();
+  toast('Sold '+c.fish.name+' for '+c.value.toLocaleString()+'g!');
+}
+function sellAll(){
+  if(!S.inventory.length){toast('Nothing to sell!');return;}
+  let tot=0;S.inventory.forEach(c=>{tot+=c.value;S.totalGoldEarned+=c.value;});
+  S.gold+=tot;S.inventory=[];updateHUD();renderInventory();tickQ();checkBadges();saveGame();
+  toast('💰 Sold all for '+tot.toLocaleString()+'g!');
+}
+
+// ═══════════════════════════════════════════════
+//  ROD STATS
+// ═══════════════════════════════════════════════
+function renderRodStats(){
+  const rod=RODS.find(r=>r.id===S.currentRod);
+  const bait=BAITS.find(b=>b.id===S.currentBait);
+  const ev=S.event?EVENTS[S.event]:null;
+  let luckBase=rod.luck+(bait?bait.luck:0);
+  let luckDisplay=ev?'×'+ev.luckMul+' ('+Math.round(luckBase*ev.luckMul)+')':luckBase;
+  const stats=[{l:'Luck',v:luckBase,display:luckDisplay,max:25},{l:'Control',v:rod.ctrl+(bait?bait.ctrl:0),max:20},{l:'Strength',v:rod.str,max:18},{l:'Speed',v:rod.spd,max:15}];
+  const skill=ROD_SKILLS[S.currentRod];
+  const el=document.getElementById('rod-stats');
+  el.innerHTML=stats.map(s=>`<div class="srow"><span class="sl">${s.l}</span><div style="display:flex;align-items:center;gap:5px"><div class="sbar-w"><div class="sbar" style="width:${Math.min(100,s.v/s.max*100)}%"></div></div><span class="sv">${s.display||s.v}</span></div></div>`).join('');
+  if(skill)el.innerHTML+=`<div style="margin-top:6px"><div style="font-size:8px;color:var(--td);letter-spacing:2px;margin-bottom:3px">ROD SKILL</div><span class="si-skill" style="background:${skill.color}22;color:${skill.color};border:1px solid ${skill.color}44">${skill.name}</span><div style="font-size:9px;color:var(--td);margin-top:3px">${skill.desc}</div></div>`;
+  const bq=S.currentBait!=='none'?(S.baitInventory[S.currentBait]||0):0;
+  el.innerHTML+=`<div class="srow" style="margin-top:4px"><span class="sl">Bait</span><span class="sv">${bait&&bait.id!=='none'?bait.icon+' '+bait.name+(bq?' ('+bq+')':''):'—'}</span></div>`;
+}
+
+// ═══════════════════════════════════════════════
+//  SHOP
+// ═══════════════════════════════════════════════
+function renderShop(){
+  const grid=document.getElementById('shop-grid');grid.innerHTML='';
+  document.getElementById('shop-msg').textContent='';
+  if(S.shopTab==='rods'){
+    RODS.filter(r=>!r.quest&&r.id!=='starter').forEach(r=>{
+      const owned=S.ownedRods.includes(r.id),eq=S.currentRod===r.id,ca=S.gold>=r.price;
+      const skill=ROD_SKILLS[r.id];
+      const div=document.createElement('div');div.className=`si ${eq?'equipped':owned?'owned':''}`;
+      div.innerHTML=`<div class="si-icon">${r.icon}</div><div class="si-name">${r.name}</div><div class="si-desc">L${r.luck} C${r.ctrl} S${r.str} Spd${r.spd}</div>${skill?`<span class="si-skill" style="background:${skill.color}22;color:${skill.color};border:1px solid ${skill.color}44">${skill.name}</span>`:''}<div class="si-price ${!ca&&!owned?'cant':''}">${eq?'✓ Equipped':owned?'Equip':r.price.toLocaleString()+'g'}</div>`;
+      div.addEventListener('click',()=>clickRod(r));grid.appendChild(div);
+    });
+    RODS.filter(r=>r.quest).forEach(r=>{
+      const owned=S.ownedRods.includes(r.id),eq=S.currentRod===r.id;
+      const skill=ROD_SKILLS[r.id];
+      const div=document.createElement('div');div.className=`si ${eq?'equipped':owned?'owned':''}`;
+      div.innerHTML=`<div class="si-icon">${r.icon}</div><div class="si-name">${r.name}</div><div class="si-desc">L${r.luck} C${r.ctrl} S${r.str} Spd${r.spd}</div>${skill?`<span class="si-skill" style="background:${skill.color}22;color:${skill.color};border:1px solid ${skill.color}44">${skill.name}</span>`:''}
+        <div class="si-price" style="color:var(--teal)">${owned?(eq?'✓ Equipped':'Equip'):'🔒 Quest Reward'}</div>`;
+      if(owned)div.addEventListener('click',()=>{S.currentRod=r.id;updateHUD();renderShop();toast(r.icon+' Equipped '+r.name+'!');});
+      grid.appendChild(div);
+    });
+  } else if(S.shopTab==='baits'){
+    BAITS.filter(b=>b.id!=='none').forEach(b=>{
+      const qty=S.baitInventory[b.id]||0,eq=S.currentBait===b.id,ca=S.gold>=b.price;
+      const div=document.createElement('div');div.className=`si ${eq?'equipped':''}`;
+      div.innerHTML=`<div class="si-icon">${b.icon}</div><div class="si-name">${b.name}</div><div class="si-desc">Luck +${b.luck} · Ctrl +${b.ctrl}${qty?' · x'+qty:''} (${b.qty}/buy)</div><div class="si-price ${!ca?'cant':''}">${b.price.toLocaleString()}g</div>`;
+      div.addEventListener('click',()=>clickBait(b));grid.appendChild(div);
+    });
+  } else if(S.shopTab==='auto'){
+    const items=[
+      {id:'autofish_basic',  name:'Basic Auto Fisher',   icon:'🤖', desc:'Auto-fish every 6s',          price:5000},
+      {id:'autofish_fast',   name:'Fast Auto Fisher',    icon:'⚡', desc:'Auto-fish every 3s',           price:20000},
+      {id:'autofish_elite',  name:'Elite Auto Fisher',   icon:'🌟', desc:'Auto-fish every 1.5s',         price:80000},
+      {id:'autofish_ultra',  name:'Ultra Auto Fisher',   icon:'💫', desc:'Auto-fish every 0.8s',         price:250000},
+      {id:'autofish_god',    name:'God Auto Fisher',     icon:'👑', desc:'Auto-fish every 0.4s (MAX)',   price:1000000},
+    ];
+    items.forEach(item=>{
+      const owned=S.autoRodId===item.id,ca=S.gold>=item.price;
+      const div=document.createElement('div');div.className=`si ${owned?'equipped':''}`;
+      div.innerHTML=`<div class="si-icon">${item.icon}</div><div class="si-name">${item.name}</div><div class="si-desc">${item.desc}</div><div class="si-price ${!ca&&!owned?'cant':''}">${owned?'✓ Owned':item.price.toLocaleString()+'g'}</div>`;
+      div.addEventListener('click',()=>{
+        if(owned)return;
+        if(S.gold<item.price){document.getElementById('shop-msg').textContent='Not enough gold!';return;}
+        S.gold-=item.price;S.autoRodId=item.id;
+        const interval=item.id==='autofish_god'?400:item.id==='autofish_ultra'?800:item.id==='autofish_elite'?1500:item.id==='autofish_fast'?3000:6000;
+        if(S.autoFishing){clearInterval(S.autoInterval);S.autoInterval=setInterval(autoFishTick,interval);}
+        updateHUD();renderShop();saveGame();toast(item.icon+' '+item.name+' purchased!');
+      });
+      grid.appendChild(div);
+    });
+  } else if(S.shopTab==='potions'){
+    const wrap=document.createElement('div');
+    wrap.style.cssText='display:grid;grid-template-columns:repeat(2,1fr);gap:8px;width:100%;';
+    POTIONS.forEach(p=>{
+      const ca=S.gold>=p.price;
+      const pot=S.potions?.[p.type];
+      const active=p.type==='all'?false:(pot?.active&&Date.now()<pot.endsAt);
+      const rem=active?Math.round((pot.endsAt-Date.now())/1000):0;
+      const d=document.createElement('div');
+      d.className='potion-card'+(active?' pot-active':'');
+      d.innerHTML=`<div class="pot-icon">${p.icon}</div><div class="pot-name">${p.name}</div><div class="pot-desc">${p.desc}</div><div class="pot-price${!ca&&!active?' cant':''}">${active?'✓ Active '+rem+'s':p.price.toLocaleString()+'g'}</div>`;
+      if(!active)d.addEventListener('click',()=>{usePotion(p);renderShop();});
+      wrap.appendChild(d);
+    });
+    grid.appendChild(wrap);
+  }
+}
+function clickRod(r){
+  if(S.ownedRods.includes(r.id)){S.currentRod=r.id;updateHUD();renderShop();toast(r.icon+' Equipped '+r.name+'!');return;}
+  if(S.gold<r.price){document.getElementById('shop-msg').textContent='Not enough gold!';return;}
+  S.gold-=r.price;S.ownedRods.push(r.id);S.currentRod=r.id;S.rodsOwned++;
+  updateHUD();renderShop();saveGame();toast(r.icon+' '+r.name+' purchased!');
+  checkBadges();
+}
+function clickBait(b){
+  if(S.gold<b.price){document.getElementById('shop-msg').textContent='Not enough gold!';return;}
+  S.gold-=b.price;S.baitInventory[b.id]=(S.baitInventory[b.id]||0)+b.qty;
+  S.currentBait=b.id;updateHUD();renderShop();toast(b.icon+' '+b.name+' x'+b.qty+'!');
+}
+
+// ═══════════════════════════════════════════════
+//  15-MIN ROTATING SHOP
+// ═══════════════════════════════════════════════
+const SHOP_POOL=[
+  {id:'s_blood',  name:'Blood Moon Totem',   icon:'🌑', desc:'2× Mythic for 3min',         price:2000, type:'item',   itemId:'bloodtotem'},
+  {id:'s_aurora', name:'Aurora Totem',        icon:'🌈', desc:'10× Luck for 3min',           price:3500, type:'item',   itemId:'auroratotem'},
+  {id:'s_storm',  name:'Storm Totem',         icon:'⛈️', desc:'2× Rare for 2.5min',          price:2500, type:'item',   itemId:'stormtotem'},
+  {id:'s_meteor', name:'Meteor Totem',        icon:'☄️', desc:'3× Luck for 1.5min',          price:3000, type:'item',   itemId:'meteortotem'},
+  {id:'s_magic',  name:'Magic Bait ×10',      icon:'💎', desc:'Luck +9, Ctrl +5',            price:1000, type:'bait',   baitId:'magic',   baitQty:10},
+  {id:'s_void',   name:'Void Bait ×5',        icon:'🌌', desc:'Luck +16, Ctrl +4',           price:2800, type:'bait',   baitId:'void',    baitQty:5},
+  {id:'s_stellar',name:'Stellar Bait ×5',     icon:'⭐', desc:'Luck +12, Ctrl +6',           price:1200, type:'bait',   baitId:'stellar', baitQty:5},
+  {id:'s_divine', name:'Divine Bait ×2',      icon:'🌠', desc:'Luck +20, Ctrl +10',          price:5000, type:'bait',   baitId:'divine',  baitQty:2},
+  {id:'s_leg',    name:'Legendary Lure ×3',   icon:'🌟', desc:'Luck +14, Ctrl +8',           price:2200, type:'bait',   baitId:'legendary',baitQty:3},
+  {id:'s_shrimp', name:'Shrimp ×20',          icon:'🦐', desc:'Luck +3, Ctrl +1',            price:200,  type:'bait',   baitId:'shrimp',  baitQty:20},
+  {id:'s_worm',   name:'Worm ×20',            icon:'🪱', desc:'Luck +1, Ctrl +0',            price:80,   type:'bait',   baitId:'worm',    baitQty:20},
+  {id:'s_firefly',name:'Firefly Lure ×5',     icon:'✨', desc:'Luck +6, Ctrl +3',            price:500,  type:'bait',   baitId:'firefly', baitQty:5},
+  {id:'s_blood2', name:'Blood Moon Totem ×2', icon:'🌑', desc:'Double pack',                 price:3500, type:'item2',  itemId:'bloodtotem', qty:2},
+  {id:'s_aur2',   name:'Aurora Totem ×2',     icon:'🌈', desc:'Double pack',                 price:6000, type:'item2',  itemId:'auroratotem', qty:2},
+];
+// Also rod discount items (generated from RODS pool)
+function buildShop15(){
+  const seed=S.shopTimer;
+  // pseudo-random from seed
+  let s=seed;function sr(n){s=(s*16807)%2147483647;return Math.abs(s)%n;}
+  // pick 8 items from pool
+  const shuffled=[...SHOP_POOL].sort(()=>sr(3)-1.5);
+  const picks=shuffled.slice(0,6);
+  // pick 2 discounted rods
+  const rods=RODS.filter(r=>!r.quest&&r.id!=='starter'&&r.price>0);
+  const rod1=rods[sr(rods.length)], rod2=rods[sr(rods.length)];
+  [rod1,rod2].forEach((r,i)=>picks.push({
+    id:'s_rod_'+i, name:r.name+' (Sale!)', icon:r.icon,
+    desc:'L'+r.luck+' C'+r.ctrl+' S'+r.str+' Spd'+r.spd,
+    price:Math.round(r.price*(0.45+sr(30)/100)), type:'rod', rodId:r.id, origPrice:r.price,
+  }));
+
+  const grid=document.getElementById('daily-grid');grid.innerHTML='';
+  const msgEl=document.getElementById('daily-msg');if(msgEl)msgEl.textContent='';
+
+  // Timer display
+  const msLeft=900000-(Date.now()%900000);
+  const m=Math.floor(msLeft/60000),sec=Math.floor((msLeft%60000)/1000);
+  const timerEl=document.getElementById('daily-timer');
+  if(timerEl)timerEl.textContent=`Next refresh in: ${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+
+  picks.forEach(item=>{
+    const bought=S.shopPurchased[item.id];
+    const ca=S.gold>=item.price;
+    const div=document.createElement('div');div.className=`si daily-sp ${bought?'owned':''}`;
+    const discLabel=item.origPrice?` <span style="color:var(--td);text-decoration:line-through;font-size:8px">${item.origPrice.toLocaleString()}g</span>`:'';
+    div.innerHTML=`<div class="si-icon">${item.icon}</div><div class="si-name">${item.name}</div><div class="si-desc">${item.desc}</div><div class="si-price ${!ca&&!bought?'cant':''}">${bought?'✓ Bought':item.price.toLocaleString()+'g'}${discLabel}</div>`;
+    if(!bought)div.addEventListener('click',()=>buyShopItem(item));
+    grid.appendChild(div);
+  });
+  const any=picks.some(i=>!S.shopPurchased[i.id]);
+  const badge=document.getElementById('daily-badge');if(badge)badge.style.display=any?'inline-block':'none';
+}
+function buyShopItem(item){
+  if(S.gold<item.price){const el=document.getElementById('daily-msg');if(el)el.textContent='Not enough gold!';return;}
+  S.gold-=item.price;S.shopPurchased[item.id]=true;
+  if(item.type==='item'||item.type==='item2'){
+    const qty=item.qty||1;S.items[item.itemId]=(S.items[item.itemId]||0)+qty;toast(item.icon+' '+item.name+' added to Items!');
+  } else if(item.type==='bait'){
+    S.baitInventory[item.baitId]=(S.baitInventory[item.baitId]||0)+item.baitQty;S.currentBait=item.baitId;toast(item.icon+' Bait added!');
+  } else if(item.type==='rod'){
+    if(!S.ownedRods.includes(item.rodId)){S.ownedRods.push(item.rodId);S.rodsOwned++;}S.currentRod=item.rodId;toast(item.icon+' '+item.name.replace(' (Sale!)','')+' purchased!');
+  }
+  updateHUD();buildShop15();saveGame();
+}
+setInterval(()=>{
+  const msLeft=900000-(Date.now()%900000);
+  const m=Math.floor(msLeft/60000),sec=Math.floor((msLeft%60000)/1000);
+  const el=document.getElementById('daily-timer');
+  if(el)el.textContent=`Next refresh in: ${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+},1000);
+
+// ═══════════════════════════════════════════════
+//  ITEMS
+// ═══════════════════════════════════════════════
+function renderItems(){
+  const grid=document.getElementById('items-grid');grid.innerHTML='';
+  const defs=[
+    {id:'auroratotem', name:'Aurora Totem',    icon:'🌈', desc:'10× Luck for 3min', cls:'aurora-i'},
+    {id:'bloodtotem',  name:'Blood Moon Totem',icon:'🌑', desc:'2× Mythic for 3min', cls:'blood-i'},
+    {id:'stormtotem',  name:'Storm Totem',      icon:'⛈️', desc:'2× Rare for 2.5min', cls:'storm-i'},
+    {id:'meteortotem', name:'Meteor Totem',     icon:'☄️', desc:'3× Luck for 1.5min', cls:'rain-i'},
+  ];
+  defs.forEach(d=>{
+    const qty=S.items[d.id]||0;
+    const div=document.createElement('div');div.className='icard '+d.cls;
+    div.innerHTML=`<div class="iicon">${d.icon}</div><div class="iname">${d.name}</div><div style="font-size:8px;color:var(--td);margin-bottom:3px">${d.desc}</div><div class="iqty">x${qty}</div><button class="iuse" ${qty<1?'disabled':''}>${qty>0?'USE':'Empty'}</button>`;
+    if(qty>0)div.querySelector('.iuse').addEventListener('click',()=>{activateTotem(d.id);closeOv('items-ov');});
+    grid.appendChild(div);
+  });
+}
+
+// ═══════════════════════════════════════════════
+//  QUESTS
+// ═══════════════════════════════════════════════
+function tickQ(){
+  const all=[...S.quests.daily,...S.quests.weekly,...S.quests.main,...S.quests.rod,...S.quests.item];
+  all.filter(q=>!q.claimed).forEach(q=>{
+    switch(q.type){
+      case 'catches':      q.progress=Math.min(q.target,S.totalCatches);break;
+      case 'gold':         q.progress=Math.min(q.target,S.totalGoldEarned);break;
+      case 'species':      q.progress=Math.min(q.target,S.caughtFishIds.size);break;
+      case 'mutation':     q.progress=Math.min(q.target,S.mutationsCaught);break;
+      case 'bloodcatch':   q.progress=Math.min(q.target,S.bloodCatches);break;
+      case 'auroracatch':  q.progress=Math.min(q.target,S.auroraCatches);break;
+      case 'rarecatch':    q.progress=Math.min(q.target,S.rareCatches);break;
+      case 'areas':        q.progress=Math.min(q.target,S.areasVisited.size);break;
+      case 'legcount':     q.progress=Math.min(q.target,S.legCount);break;
+      case 'mythiccatch':  q.progress=Math.min(q.target,S.mythicCatches);break;
+      case 'prismatic':    q.progress=Math.min(q.target,S.prismaticCaught);break;
+      case 'goldenmut':    q.progress=Math.min(q.target,S.goldenMutCaught);break;
+      case 'darkmut':      q.progress=Math.min(q.target,S.darkMutCaught);break;
+      case 'elitequest':   q.progress=Math.min(q.target,S.mythicCatches);break;
+      case 'blizzcatch':   q.progress=Math.min(q.target,S.blizzCatches);break;
+      case 'eventcatch':   q.progress=Math.min(q.target,S.eventsEncountered.size);break;
+    }
+  });
+}
+function qDone(q){
+  if(q.type==='rarity'||q.type==='area')return(q.progress||0)>=1;
+  const t=q.questCount||q.target;return(q.progress||0)>=t;
+}
+function checkBadges(){
+  const all=[...S.quests.daily,...S.quests.weekly,...S.quests.main,...S.quests.rod,...S.quests.item];
+  document.getElementById('quest-badge').style.display=all.some(q=>!q.claimed&&qDone(q))?'inline-block':'none';
+}
+function renderQuests(){
+  const list=document.getElementById('quest-list');list.innerHTML='';
+  const pool=S.quests[S.questTab]||[];
+  pool.forEach(q=>{
+    const done=qDone(q),prog=q.progress||0;
+    const t=q.questCount||q.target;
+    let pct=q.type==='rarity'||q.type==='area'?prog>=1?100:0:Math.min(100,Math.round(prog/t*100));
+    const div=document.createElement('div');
+    div.className=`qcard ${q.weekly?'weekly':''} ${done&&!q.claimed?'done':''} ${q.claimed?'claimed':''}`;
+    let rlabel='';
+    if(q.itemR){
+      if(q.itemR.type==='rod'){const r=RODS.find(x=>x.id===q.itemR.id);rlabel=`🎣 ${r?r.icon+' '+r.name:'Rod'}`;}
+      else{const n=q.itemR.id==='bloodtotem'?'Blood Totem':q.itemR.id==='auroratotem'?'Aurora Totem':q.itemR.id==='stormtotem'?'Storm Totem':'Meteor Totem';rlabel=`🎁 ${n} x${q.itemR.qty}`;}
+    } else rlabel=`🏆 ${q.reward.toLocaleString()}g`;
+    div.innerHTML=`<div class="qname">${q.name}</div><div class="qdesc">${q.desc}</div><div class="qpw"><div class="qpb" style="width:${pct}%"></div></div><div class="qfooter"><span class="qreward ${q.itemR?'item-r':''}">${rlabel}</span><button class="qclaim" ${done&&!q.claimed?'':'disabled'}>${q.claimed?'✓ Done':done?'Claim!':'...'}</button></div>`;
+    if(done&&!q.claimed)div.querySelector('.qclaim').addEventListener('click',()=>claimQ(q));
+    list.appendChild(div);
+  });
+}
+function claimQ(q){
+  if(q.goldCost&&S.gold<q.goldCost){toast('Need '+q.goldCost.toLocaleString()+'g to claim this quest!');return;}
+  if(q.goldCost){S.gold-=q.goldCost;updateHUD();}
+  q.claimed=true;
+  if(q.itemR){
+    if(q.itemR.type==='rod'){const r=RODS.find(x=>x.id===q.itemR.id);if(r&&!S.ownedRods.includes(r.id)){S.ownedRods.push(r.id);S.currentRod=r.id;}toast('🎣 Got '+r.icon+' '+r.name+'!');}
+    else{S.items[q.itemR.id]=(S.items[q.itemR.id]||0)+(q.itemR.qty||1);const n=q.itemR.id==='bloodtotem'?'Blood Totem':q.itemR.id==='auroratotem'?'Aurora Totem':q.itemR.id==='stormtotem'?'Storm Totem':'Meteor Totem';toast('🎁 Got '+n+'!');}
+  } else {S.gold+=q.reward;toast('🏆 "'+q.name+'" done! +'+q.reward.toLocaleString()+'g');}
+  updateHUD();renderQuests();checkBadges();saveGame();
+}
+
+// ═══════════════════════════════════════════════
+//  COLLECTION
+// ═══════════════════════════════════════════════
+function renderTitles(){
+  const grid=document.getElementById('titles-grid');if(!grid)return;grid.innerHTML='';
+  TITLES.forEach(t=>{
+    const owned=(S.ownedTitles||[]).includes(t.id);
+    const active=S.title===t.id;
+    const c=t.color||'#aaa';
+    const d=document.createElement('div');
+    d.className='title-card'+(owned?' owned':'  locked')+(active?' active-title':'');
+    d.style.borderColor=active?c:owned?c+'44':'rgba(255,255,255,.06)';
+    d.style.background=active?c+'18':owned?'rgba(255,255,255,.03)':'rgba(255,255,255,.01)';
+    const req=t.minLevel?'Lv.'+t.minLevel:t.special?'Special catch':t.specialCount?t.target+' mutations':t.specialArea?t.target+'× '+t.specialArea:'—';
+    d.innerHTML=`<div class="title-name" style="color:${owned?c:'rgba(255,255,255,.3)'}">${owned?t.id:'???'}</div><div class="title-meta">${t.rarity}</div><div class="title-meta" style="color:${c}44">${req}</div>${active?'<div class="title-meta" style="color:'+c+'">✓ Equipped</div>':''}`;
+    if(owned)d.addEventListener('click',()=>{S.title=t.id;saveGame();renderTitles();updateHUD();toast('🏆 Title: '+t.id);});
+    grid.appendChild(d);
+  });
+}
+
+function renderCollection(){
+  const grid=document.getElementById('col-grid');grid.innerHTML='';
+  FISH_DB.forEach(f=>{
+    const caught=S.caughtFishIds.has(f.id);
+    const div=document.createElement('div');
+    div.className=`ccard ${caught?'caught':''} ${caught&&['exotic','secret','divine'].includes(f.rarity)?f.rarity:''}`;
+    div.innerHTML=`<div class="cicon">${caught?f.icon:'❓'}</div><div class="cname">${caught?f.name:'???'}</div>`;
+    if(caught){
+      div.addEventListener('mouseenter',e=>showFishDetailPopup(f,e));
+      div.addEventListener('mouseleave',()=>hideFishDetailPopup());
+      div.addEventListener('mousemove',e=>moveFishDetailPopup(e));
+    }
+    grid.appendChild(div);
+  });
+  document.getElementById('coll-count').textContent=S.caughtFishIds.size+' / '+FISH_DB.length;
+}
+
+
+// ═══════════════════════════════════════════════
+//  FISH DETAIL POPUP
+// ═══════════════════════════════════════════════
+const RARITY_COLORS={common:'#a0b0c0',uncommon:'#44cc88',rare:'#4488ff',legendary:'#cc44ff',mythic:'#ff8844',exotic:'#ff44aa',secret:'#ffe066',divine:'#ffffff'};
+function showFishDetailPopup(fish,e){
+  const pop=document.getElementById('fish-detail-popup');
+  const log=S.fishLog[fish.id];
+  const caught=S.caughtFishIds.has(fish.id);
+  document.getElementById('fdp-icon').textContent=fish.icon;
+  document.getElementById('fdp-name').textContent=fish.name;
+  const rc=document.getElementById('fdp-rarity');
+  rc.textContent=fish.rarity[0].toUpperCase()+fish.rarity.slice(1);
+  rc.style.background=(RARITY_COLORS[fish.rarity]||'#fff')+'22';
+  rc.style.color=RARITY_COLORS[fish.rarity]||'#fff';
+  rc.style.border='1px solid '+(RARITY_COLORS[fish.rarity]||'#fff')+'55';
+  const rows=document.getElementById('fdp-rows');
+  rows.innerHTML='';
+  const add=(l,v)=>{const r=document.createElement('div');r.className='fdp-row';r.innerHTML=`<span class="fdp-label">${l}</span><span class="fdp-val">${v}</span>`;rows.appendChild(r);};
+  add('Area',AREAS.find(a=>a.id===fish.area)?.name||fish.area);
+  add('Base Value',fish.price.toLocaleString()+'g');
+  add('Size Range',fish.min+'–'+fish.max+'cm');
+  if(caught&&log){
+    add('Times Caught',log.count.toLocaleString());
+    add('Biggest Size',log.biggestSize+'cm / '+(log.biggestWeight||'?')+'kg');
+    add('Best Value',log.biggestValue.toLocaleString()+'g');
+    const fc=document.getElementById('fdp-first');
+    fc.textContent='First caught: '+new Date(log.firstCaught).toLocaleDateString();
+  } else {
+    document.getElementById('fdp-first').textContent=caught?'Discovered!':'Not yet caught';
+  }
+  pop.classList.add('show');
+  moveFishDetailPopup(e);
+}
+function moveFishDetailPopup(e){
+  const pop=document.getElementById('fish-detail-popup');
+  let x=e.clientX+14,y=e.clientY+14;
+  if(x+270>window.innerWidth)x=e.clientX-274;
+  if(y+250>window.innerHeight)y=e.clientY-254;
+  pop.style.left=x+'px';pop.style.top=y+'px';
+}
+function hideFishDetailPopup(){document.getElementById('fish-detail-popup').classList.remove('show');}
+
+// ═══════════════════════════════════════════════
+//  TRADE POST
+// ═══════════════════════════════════════════════
+let tradeTab='mutate';
+const MUTATE_SERVICES=[
+  {id:'mut_golden',  name:'Gild Fish',         icon:'🥇', desc:'Turn any fish Golden mutation',    costType:'gold',  cost:500,   targetMut:'golden'},
+  {id:'mut_giant',   name:'Enlarge Fish',       icon:'🔭', desc:'Turn any fish Giant mutation',     costType:'gold',  cost:300,   targetMut:'giant'},
+  {id:'mut_dark',    name:'Darken Fish',        icon:'🌑', desc:'Turn any fish Dark mutation',      costType:'gold',  cost:800,   targetMut:'dark'},
+  {id:'mut_albino',  name:'Bleach Fish',        icon:'⬜', desc:'Turn any fish Albino mutation',    costType:'gold',  cost:600,   targetMut:'albino'},
+  {id:'mut_prismatic',name:'Prismify Fish',     icon:'🌈', desc:'Turn any fish Prismatic mutation', costType:'gold',  cost:2000,  targetMut:'prismatic'},
+  {id:'mut_ascend',  name:'Ascend Fish',        icon:'💫', desc:'Turn any fish Ascended mutation',  costType:'gold',  cost:10000, targetMut:'ascend'},
+  {id:'mut_remove',  name:'Remove Mutation',    icon:'❌', desc:'Reset mutation to Normal',         costType:'gold',  cost:100,   targetMut:'normal'},
+];
+const APPRAISE_TIERS=[
+  {min:0,      max:99,    label:'Common Catch',    desc:'A typical fish, nothing special.',               icon:'🐟'},
+  {min:100,    max:499,   label:'Decent Haul',     desc:'A respectable catch worth keeping.',             icon:'🐠'},
+  {min:500,    max:1999,  label:'Fine Fish',       desc:'A high-quality catch. Impressive!',              icon:'🌟'},
+  {min:2000,   max:9999,  label:'Rare Trophy',     desc:'An exceptional specimen. Collectors want this.', icon:'🏆'},
+  {min:10000,  max:49999, label:'Legendary Catch', desc:'Extraordinarily rare. You\'re a true master!',   icon:'👑'},
+  {min:50000,  max:Infinity, label:'Divine Catch', desc:'Beyond all rarity. The gods bow to you.',        icon:'✨'},
+];
+const CONVERT_RECIPES=[
+  {id:'c1', name:'10× Common → 1 Uncommon Bait', icon:'🔄', desc:'Convert 10 common fish to Shrimp ×5', costFish:'common',  costQty:10, rewardType:'bait', rewardId:'shrimp',  rewardQty:5},
+  {id:'c2', name:'5× Uncommon → 1 Rare Bait',    icon:'⚗️', desc:'Convert 5 uncommon to Squid Piece ×3', costFish:'uncommon',costQty:5,  rewardType:'bait', rewardId:'squidb',  rewardQty:3},
+  {id:'c3', name:'3× Rare → Magic Bait ×2',       icon:'💫', desc:'Trade 3 rare fish for premium bait',  costFish:'rare',    costQty:3,  rewardType:'bait', rewardId:'magic',   rewardQty:2},
+  {id:'c4', name:'2× Legendary → Void Bait',      icon:'🌌', desc:'Trade 2 legendary for void bait',     costFish:'legendary',costQty:2, rewardType:'bait', rewardId:'void',    rewardQty:1},
+  {id:'c5', name:'5× Common → Gold +200',         icon:'💰', desc:'Bulk-sell common fish for gold bonus', costFish:'common',  costQty:5,  rewardType:'gold', rewardVal:200},
+  {id:'c6', name:'3× Mythic → Aurora Totem',      icon:'🌈', desc:'Sacrifice mythic fish for a totem',   costFish:'mythic',  costQty:3,  rewardType:'item', rewardId:'auroratotem'},
+  {id:'c7', name:'1× Secret → Blood Moon Totem',  icon:'🌑', desc:'Trade a secret for power',            costFish:'secret',  costQty:1,  rewardType:'item', rewardId:'bloodtotem'},
+];
+
+function openTrade(){
+  tradeTab='mutate';
+  document.querySelectorAll('#trade-tabs .tbtn').forEach((t,i)=>{t.classList.toggle('active',i===0);});
+  renderTradeContent('mutate');
+  openOv('trade-ov');
+}
+function renderTradeContent(tab){
+  tradeTab=tab;
+  const c=document.getElementById('trade-content');c.innerHTML='';
+  document.getElementById('trade-msg').textContent='';
+  if(tab==='mutate') renderMutate(c);
+  else if(tab==='appraise') renderAppraise(c);
+  else renderConvert(c);
+}
+
+// MUTATE TAB
+let selectedFishIdx=null;
+let selectedMutService=null;
+function renderMutate(container){
+  selectedFishIdx=null;selectedMutService=null;
+  if(!S.inventory.length){container.innerHTML='<div style="color:var(--td);font-style:italic;font-size:12px">No fish in your bag to mutate!</div>';return;}
+  container.innerHTML=`
+    <div style="display:flex;gap:14px;width:100%;max-width:720px;flex-wrap:wrap;">
+      <div style="flex:1;min-width:200px">
+        <div class="ptitle">Select Fish</div>
+        <div id="mut-fish-list" style="max-height:40vh;overflow-y:auto;display:flex;flex-direction:column;gap:5px;"></div>
+      </div>
+      <div style="flex:1;min-width:200px">
+        <div class="ptitle">Mutation Service</div>
+        <div id="mut-svc-list" style="max-height:40vh;overflow-y:auto;display:flex;flex-direction:column;gap:5px;"></div>
+      </div>
+      <div style="flex:0 0 160px;min-width:140px">
+        <div class="ptitle">Preview</div>
+        <div id="mut-preview" style="background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.07);border-radius:3px;padding:10px;font-size:10px;color:var(--td);text-align:center;min-height:100px;display:flex;align-items:center;justify-content:center;">Select fish & service</div>
+        <button class="trade-exec" id="mut-exec-btn" disabled style="width:100%;margin-top:8px;">Apply</button>
+      </div>
+    </div>`;
+  const fishList=document.getElementById('mut-fish-list');
+  S.inventory.forEach((c,i)=>{
+    const div=document.createElement('div');div.className='inv-fish rarity-'+c.fish.rarity;div.style.cursor='pointer';div.style.marginBottom='2px';
+    const lbl=(c.mut.id!=='normal'?c.mut.name+' ':'')+c.fish.name;
+    div.innerHTML=`<div class="if-icon">${c.fish.icon}</div><div class="if-info"><div class="if-name">${lbl}</div><div class="if-sub">${c.size}cm · ${c.value.toLocaleString()}g</div></div>`;
+    div.addEventListener('click',()=>{selectedFishIdx=i;document.querySelectorAll('#mut-fish-list .inv-fish').forEach(d=>d.style.borderColor='');div.style.borderColor='var(--gold)';updateMutPreview();});
+    fishList.appendChild(div);
+  });
+  const svcList=document.getElementById('mut-svc-list');
+  MUTATE_SERVICES.forEach(svc=>{
+    const can=S.gold>=svc.cost;
+    const div=document.createElement('div');div.className='trade-card';div.style.padding='8px 10px';
+    div.innerHTML=`<div style="display:flex;align-items:center;gap:7px"><div style="font-size:18px">${svc.icon}</div><div><div style="font-family:'Cinzel',serif;font-size:9px">${svc.name}</div><div style="font-size:8px;color:var(--td)">${svc.desc}</div><div style="font-size:9px;color:${can?'var(--gold)':'var(--red)'}">Cost: ${svc.cost.toLocaleString()}g</div></div></div>`;
+    div.addEventListener('click',()=>{selectedMutService=svc;document.querySelectorAll('#mut-svc-list .trade-card').forEach(d=>d.classList.remove('selected'));div.classList.add('selected');updateMutPreview();});
+    svcList.appendChild(div);
+  });
+}
+function updateMutPreview(){
+  const prev=document.getElementById('mut-preview');
+  const btn=document.getElementById('mut-exec-btn');
+  if(selectedFishIdx===null||!selectedMutService){prev.textContent='Select fish & service';if(btn)btn.disabled=true;return;}
+  const c=S.inventory[selectedFishIdx];
+  const svc=selectedMutService;
+  const newMut=MUTATIONS.find(m=>m.id===svc.targetMut)||{id:'normal',name:'',pMul:1,sMul:1,color:'#a0b0c0'};
+  const newVal=Math.round(c.value/c.mut.pMul*newMut.pMul);
+  prev.innerHTML=`<div><div style="font-size:24px">${c.fish.icon}</div><div style="font-size:10px;font-family:'Cinzel',serif;margin:4px 0">${newMut.name?newMut.name+' ':''}<br>${c.fish.name}</div><div style="font-size:9px;color:${newMut.color||'#a0b0c0'}">${newMut.name||'Normal'} mutation</div><div style="font-size:10px;color:var(--gold);margin-top:4px">${newVal.toLocaleString()}g</div></div>`;
+  if(btn){btn.disabled=S.gold<svc.cost;btn.textContent='Apply ('+svc.cost.toLocaleString()+'g)';}
+  if(btn)btn.onclick=()=>executeMutate();
+}
+function executeMutate(){
+  if(selectedFishIdx===null||!selectedMutService)return;
+  const svc=selectedMutService;
+  if(S.gold<svc.cost){toast('Not enough gold!');return;}
+  S.gold-=svc.cost;
+  const c=S.inventory[selectedFishIdx];
+  const newMut=MUTATIONS.find(m=>m.id===svc.targetMut)||{id:'normal',name:'',pMul:1,sMul:1,color:'#a0b0c0'};
+  const oldVal=c.value;c.mut=newMut;
+  c.value=Math.round(oldVal/oldVal*oldVal/c.mut.pMul*newMut.pMul)||Math.round(c.fish.price*newMut.pMul);
+  updateHUD();renderInventory();saveGame();
+  toast('✨ Mutation applied! '+c.fish.name+' is now '+(newMut.name||'Normal')+'!');
+  renderTradeContent('mutate');
+}
+
+// APPRAISE TAB
+function renderAppraise(container){
+  if(!S.inventory.length){container.innerHTML='<div style="color:var(--td);font-style:italic;font-size:12px">No fish to appraise!</div>';return;}
+  container.innerHTML=`<div style="display:flex;gap:12px;width:100%;max-width:680px;flex-wrap:wrap;">
+    <div style="flex:1;min-width:200px">
+      <div class="ptitle">Select Fish to Appraise</div>
+      <div id="app-fish-list" style="max-height:50vh;overflow-y:auto;display:flex;flex-direction:column;gap:4px;"></div>
+    </div>
+    <div class="appraise-result" id="app-result"><div style="color:var(--td);font-size:11px;font-style:italic">Select a fish to appraise it</div></div>
+  </div>`;
+  const fl=document.getElementById('app-fish-list');
+  S.inventory.forEach((c,i)=>{
+    const div=document.createElement('div');div.className='inv-fish rarity-'+c.fish.rarity;div.style.cursor='pointer';div.style.marginBottom='2px';
+    const lbl=(c.mut.id!=='normal'?c.mut.name+' ':'')+c.fish.name;
+    div.innerHTML=`<div class="if-icon">${c.fish.icon}</div><div class="if-info"><div class="if-name">${lbl}</div><div class="if-sub">${c.size}cm · ${c.value.toLocaleString()}g</div></div>`;
+    div.addEventListener('click',()=>{document.querySelectorAll('#app-fish-list .inv-fish').forEach(d=>d.style.borderColor='');div.style.borderColor='var(--tg)';showAppraisal(c);});
+    fl.appendChild(div);
+  });
+}
+function showAppraisal(c){
+  const tier=APPRAISE_TIERS.find(t=>c.value>=t.min&&c.value<=t.max)||APPRAISE_TIERS[0];
+  const mut=c.mut;const fish=c.fish;
+  const rarityColor=RARITY_COLORS[fish.rarity]||'#fff';
+  const rarNames=['common','uncommon','rare','legendary','mythic','exotic','secret','divine'];
+  const rarIdx=rarNames.indexOf(fish.rarity);
+  const rarBar=rarNames.map((_,i)=>`<div style="flex:1;height:6px;border-radius:2px;background:${i<=rarIdx?rarityColor:'rgba(255,255,255,.08)'}"></div>`).join('');
+  const res=document.getElementById('app-result');
+  res.innerHTML=`
+    <div class="appraise-fish-icon">${fish.icon}</div>
+    <div class="appraise-title">${mut.name?mut.name+' ':''}<span style="color:${rarityColor}">${fish.name}</span></div>
+    <div style="font-size:9px;letter-spacing:2px;color:${rarityColor};margin-bottom:8px">${fish.rarity.toUpperCase()}</div>
+    <div style="display:flex;gap:3px;margin-bottom:10px">${rarBar}</div>
+    <div style="font-size:24px;margin-bottom:4px">${tier.icon}</div>
+    <div style="font-family:'Cinzel',serif;font-size:13px;color:var(--gold);margin-bottom:6px">${tier.label}</div>
+    <div class="appraise-desc">${tier.desc}</div>
+    ${mut.id!=='normal'?`<div style="margin-top:8px;font-size:10px;color:${mut.color||'#aaa'}">✨ ${mut.name} mutation (×${mut.pMul} value)</div>`:''}
+    <div style="margin-top:8px;font-size:11px;color:var(--gold);font-family:'Cinzel',serif">${c.value.toLocaleString()} Gold</div>
+    <div style="font-size:9px;color:var(--td);margin-top:3px">${c.size}cm · ${c.weight}kg</div>`;
+}
+
+// CONVERT TAB
+function renderConvert(container){
+  container.innerHTML=`<div style="display:flex;flex-direction:column;gap:7px;max-width:560px;width:100%;max-height:55vh;overflow-y:auto;" id="conv-list"></div>`;
+  const cl=document.getElementById('conv-list');
+  CONVERT_RECIPES.forEach(rec=>{
+    const available=S.inventory.filter(c=>c.fish.rarity===rec.costFish).length;
+    const canDo=available>=rec.costQty;
+    const div=document.createElement('div');div.className='trade-card';
+    const rwd=rec.rewardType==='bait'?`${BAITS.find(b=>b.id===rec.rewardId)?.icon||'?'} ${rec.rewardQty}×${BAITS.find(b=>b.id===rec.rewardId)?.name||rec.rewardId}`
+      :rec.rewardType==='gold'?`💰 +${rec.rewardVal}g`
+      :`🎁 ${rec.rewardId==='auroratotem'?'Aurora Totem':rec.rewardId==='bloodtotem'?'Blood Moon Totem':'Item'}`;
+    div.innerHTML=`<div style="display:flex;align-items:center;gap:10px">
+      <div style="font-size:22px">${rec.icon}</div>
+      <div style="flex:1">
+        <div style="font-family:'Cinzel',serif;font-size:10px">${rec.name}</div>
+        <div style="font-size:9px;color:var(--td)">${rec.desc}</div>
+        <div style="font-size:9px;margin-top:3px">Cost: <span style="color:${canDo?'var(--grn)':'var(--red)'}">×${rec.costQty} ${rec.costFish} fish</span> (have ${available}) → <span style="color:var(--gold)">${rwd}</span></div>
+      </div>
+      <button class="trade-exec" style="font-size:9px;padding:6px 14px" ${canDo?'':'disabled'}>Trade</button>
+    </div>`;
+    if(canDo)div.querySelector('.trade-exec').addEventListener('click',()=>executeConvert(rec));
+    cl.appendChild(div);
+  });
+}
+function executeConvert(rec){
+  let removed=0;
+  S.inventory=S.inventory.filter(c=>{if(c.fish.rarity===rec.costFish&&removed<rec.costQty){removed++;return false;}return true;});
+  if(rec.rewardType==='bait'){S.baitInventory[rec.rewardId]=(S.baitInventory[rec.rewardId]||0)+rec.rewardQty;S.currentBait=rec.rewardId;toast('♻️ Converted! Got '+rec.rewardQty+'× bait!');}
+  else if(rec.rewardType==='gold'){S.gold+=rec.rewardVal;toast('♻️ Converted! Got +'+rec.rewardVal+'g!');}
+  else if(rec.rewardType==='item'){S.items[rec.rewardId]=(S.items[rec.rewardId]||0)+1;toast('♻️ Converted! Got totem!');}
+  renderInventory();updateHUD();saveGame();renderTradeContent('convert');
+}
+
+// ═══════════════════════════════════════════════
+//  UTILS
+// ═══════════════════════════════════════════════
+// ── FISH DETAIL POPUP ──
+function showFishPopup(fish,e){
+  const el=document.getElementById('fish-popup');if(!el)return;
+  const log=S.fishLog?.[fish.id];
+  const caught=S.caughtFishIds.has(fish.id);
+  const rc=RCOLS[fish.rarity]||'#fff';
+  document.getElementById('fpp-icon').textContent=fish.icon;
+  document.getElementById('fpp-name').textContent=fish.name;
+  const rEl=document.getElementById('fpp-rar');
+  rEl.textContent=fish.rarity.toUpperCase();
+  rEl.style.background=rc+'22';rEl.style.color=rc;rEl.style.border='1px solid '+rc+'44';
+  const rows=document.getElementById('fpp-rows');rows.innerHTML='';
+  const add=(l,v)=>{const r=document.createElement('div');r.className='fpp-row';r.innerHTML=`<span class="fpp-lbl">${l}</span><span class="fpp-val">${v}</span>`;rows.appendChild(r);};
+  add('Area',AREAS.find(a=>a.id===fish.area)?.name||fish.area);
+  add('Base Value',fish.price.toLocaleString()+'g');
+  add('Size',fish.min+'–'+fish.max+'cm');
+  if(caught&&log){
+    add('Caught',log.count+'×');
+    add('Biggest',log.biggestSize+'cm / '+(log.biggestWeight||'?')+'kg');
+    add('Best Value',log.biggestValue.toLocaleString()+'g');
+    document.getElementById('fpp-hint').textContent='First: '+new Date(log.firstCaught).toLocaleDateString();
+  } else {
+    document.getElementById('fpp-hint').textContent=caught?'Discovered!':'Not yet caught';
+  }
+  el.classList.add('on');
+  moveFishPopup(e);
+}
+function moveFishPopup(e){
+  const el=document.getElementById('fish-popup');if(!el)return;
+  let x=e.clientX+12,y=e.clientY+12;
+  if(x+260>window.innerWidth)x=e.clientX-264;
+  if(y+230>window.innerHeight)y=e.clientY-234;
+  el.style.left=x+'px';el.style.top=y+'px';
+}
+function hideFishPopup(){const el=document.getElementById('fish-popup');if(el)el.classList.remove('on');}
+
+function resetIdle(){
+  S.phase='idle';
+  document.getElementById('cast-btn').disabled=false;
+  document.getElementById('cast-hint').style.display='flex';
+  document.getElementById('fail').classList.remove('active');
+  resetLine();setStatus('Cast your line!');
+}
+function setStatus(m){document.getElementById('status-msg').textContent=m;}
+let toastT;
+function toast(msg){
+  const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');
+  clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('show'),2800);
+}
+
+// ═══════════════════════════════════════════════
+//  ADMIN PANEL
+// ═══════════════════════════════════════════════
+function setupAdminPanel(){
+  const sel=document.getElementById('adm-ev-sel');
+  if(!sel)return;
+  sel.innerHTML='';
+  Object.entries(EVENTS).forEach(([k,e])=>{const o=document.createElement('option');o.value=k;o.textContent=e.icon+' '+e.name;sel.appendChild(o);});
+  document.getElementById('adm-start-ev')?.addEventListener('click',()=>{
+    const type=sel.value,dur=parseInt(document.getElementById('adm-ev-dur')?.value)||120;
+    if(!EVENTS[type])return;
+    if(S.event)_endEventLocal();
+    setGEV(type,dur);
+    startEvent(type,false);
+    const st=document.getElementById('adm-ev-st');
+    if(st)st.textContent='✅ "'+EVENTS[type].name+'" started globally ('+dur+'s)';
+    toast('👑 Admin broadcast: '+EVENTS[type].name+'!');
+  });
+  document.getElementById('adm-stop-ev')?.addEventListener('click',()=>{
+    clearGEV();endEvent();
+    const st=document.getElementById('adm-ev-st');if(st)st.textContent='⛔ Event stopped globally.';
+    toast('👑 Admin: Event stopped.');
+  });
+  document.getElementById('adm-add-gold')?.addEventListener('click',()=>{
+    const amt=parseInt(document.getElementById('adm-gold-amt')?.value)||0;
+    if(amt<=0)return;
+    S.gold+=amt;updateHUD();saveGame();
+    const st=document.getElementById('adm-gold-st');if(st)st.textContent='✅ +'+amt.toLocaleString()+'g added! Total: '+S.gold.toLocaleString()+'g';
+    toast('👑 +'+amt.toLocaleString()+'g!');
+  });
+  document.getElementById('adm-rst-gold')?.addEventListener('click',()=>{
+    S.gold=200;updateHUD();saveGame();
+    const st=document.getElementById('adm-gold-st');if(st)st.textContent='✅ Gold reset to 200g.';
+  });
+  document.getElementById('admin-ov-close')?.addEventListener('click',()=>closeOv('admin-ov'));
+  // Level controls
+  document.getElementById('adm-set-level')?.addEventListener('click',()=>{
+    const lvl=parseInt(document.getElementById('adm-level-set')?.value)||1;
+    S.level=Math.max(1,Math.min(100,lvl));S.exp=0;checkTitleUnlocks();updateHUD();saveGame();
+    const st=document.getElementById('adm-lv-st');if(st)st.textContent='✅ Level set to '+S.level;
+    toast('👑 Admin: Level set to '+S.level+'!');
+  });
+  document.getElementById('adm-add-level')?.addEventListener('click',()=>{
+    if(S.level<100){S.level++;S.exp=0;checkLevelRewards(S.level);checkTitleUnlocks();updateHUD();saveGame();}
+    const st=document.getElementById('adm-lv-st');if(st)st.textContent='✅ Now Level '+S.level;
+    toast('👑 +1 Level! Now Lv.'+S.level);
+  });
+  document.getElementById('adm-add-exp')?.addEventListener('click',()=>{
+    const amt=parseInt(document.getElementById('adm-exp-amt')?.value)||0;
+    addExp(amt);saveGame();
+    const st=document.getElementById('adm-lv-st');if(st)st.textContent='✅ Added '+amt+' EXP';
+  });
+}
+
+// ═══════════════════════════════════════════════
+//  BOOT
+// ═══════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded',()=>{
+  setupLogin();setupTutorial();
+  document.getElementById('logout-btn').addEventListener('click',()=>{if(confirm('Logout? Progress is saved.'))doLogout();});
+});
+</script>
+</body>
+</html>
